@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Privacy Shield</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 280px;
+      background: #0d1418;
+      color: #e9edef;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #00a884 0%, #025144 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #e9edef;
+      letter-spacing: 0.1px;
+    }
+
+    .header-text p {
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+      font-family: 'DM Mono', monospace;
+      margin-top: 1px;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      background: rgba(0,168,132,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .status-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .toggle {
+      position: relative;
+      width: 38px;
+      height: 21px;
+      cursor: pointer;
+    }
+
+    .toggle input { display: none; }
+
+    .toggle-track {
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 11px;
+      transition: background 0.2s;
+    }
+
+    .toggle input:checked + .toggle-track { background: #00a884; }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 15px;
+      height: 15px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+      pointer-events: none;
+    }
+
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(17px); }
+
+    .section {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .section-title {
+      font-size: 9px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      font-family: 'DM Mono', monospace;
+      margin-bottom: 10px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .row:last-child { margin-bottom: 0; }
+
+    .row-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .row-icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slider-row { flex-direction: column; align-items: stretch; gap: 6px; }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slider-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: #00a884;
+      min-width: 24px;
+      text-align: right;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #00a884;
+      cursor: pointer;
+    }
+
+    .shortcuts { padding: 10px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .shortcut-row:last-child { margin-bottom: 0; }
+
+    .shortcut-label { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    .kbd-group { display: flex; gap: 3px; }
+
+    kbd {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 4px;
+      padding: 2px 5px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .disclaimer {
+      padding: 8px 18px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .disclaimer-text {
+      font-size: 9px;
+      color: rgba(255,255,255,0.18);
+      text-align: center;
+      line-height: 1.5;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .open-wa {
+      font-size: 11px;
+      color: rgba(0,168,132,0.7);
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: color 0.15s;
+      margin-top: 2px;
+    }
+
+    .open-wa:hover { color: #00a884; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">🛡</div>
+    <div class="header-text">
+      <h1>Chat Privacy Shield</h1>
+      <p>web.whatsapp.com</p>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span class="status-label" id="status-text">Inactive</span>
+    <label class="toggle">
+      <input type="checkbox" id="main-toggle">
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Blur Intensity</div>
+    <div class="row slider-row">
+      <div class="slider-header">
+        <div class="row-label">
+          <div class="row-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          Blur level
+        </div>
+        <span class="slider-val" id="blur-val">8px</span>
+      </div>
+      <input type="range" id="blur-slider" min="2" max="20" step="1" value="8">
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Options</div>
+
+    <div class="row">
+      <div class="row-label">
+        <div class="row-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        Hide profile photos
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-avatars" checked>
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+    <div class="row">
+      <div class="row-label">
+        <div class="row-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>
+        </div>
+        Hide names
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-names" checked>
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+    <div class="row">
+      <div class="row-label">
+        <div class="row-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        Reveal on hover
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-hover">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+  </div>
+
+  <div class="shortcuts">
+    <div class="shortcut-row">
+      <span class="shortcut-label">Toggle privacy</span>
+      <div class="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>H</kbd></div>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-label">Boss Key</span>
+      <div class="kbd-group"><kbd>L</kbd></div>
+    </div>
+    <div class="shortcut-row">
+      <span class="shortcut-label">Show/hide panel</span>
+      <div class="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>P</kbd></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <a href="https://web.whatsapp.com" target="_blank" class="open-wa">Open WhatsApp Web →</a>
+    <p class="disclaimer-text">Not affiliated with WhatsApp, Meta, or Google.<br>No data is collected or transmitted.</p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Chat Privacy Shield</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0d1418;
+      color: #c9d1d9;
+      line-height: 1.7;
+      padding: 48px 24px;
+    }
+    .container { max-width: 680px; margin: 0 auto; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,168,132,0.12);
+      border: 1px solid rgba(0,168,132,0.25);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      color: #00a884;
+      margin-bottom: 32px;
+    }
+    h1 { font-size: 28px; font-weight: 700; color: #e9edef; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: rgba(255,255,255,0.35); margin-bottom: 40px; }
+    h2 { font-size: 16px; font-weight: 600; color: #e9edef; margin: 32px 0 12px; }
+    p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+    .highlight {
+      background: rgba(0,168,132,0.08);
+      border-left: 3px solid #00a884;
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 20px 0;
+    }
+    .highlight p { margin: 0; color: rgba(255,255,255,0.75); }
+    .divider { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 32px 0; }
+    footer { font-size: 12px; color: rgba(255,255,255,0.2); margin-top: 48px; text-align: center; }
+    a { color: #00a884; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">🛡 Chat Privacy Shield</div>
+    <h1>Privacy Policy</h1>
+    <p class="subtitle">Last updated: June 2026 · Effective immediately upon installation</p>
+
+    <div class="highlight">
+      <p><strong>Short version:</strong> Chat Privacy Shield does not collect, store, transmit, or share any personal data. Everything stays on your device.</p>
+    </div>
+
+    <h2>1. What We Collect</h2>
+    <p><strong>Nothing.</strong> Chat Privacy Shield does not collect any personal information, usage data, analytics, or telemetry of any kind.</p>
+    <p>The extension does not have access to the content of your messages, contacts, or any data from WhatsApp Web beyond what is visually rendered on your screen.</p>
+
+    <h2>2. Local Storage Only</h2>
+    <p>Your preferences (blur level, enabled features, panel visibility) are saved exclusively using <code>chrome.storage.local</code>. This means your settings are stored locally on your device and are never transmitted to any external server — not to us, not to Google, not to anyone.</p>
+    <p>This data is limited to extension settings and contains no personally identifiable information.</p>
+
+    <h2>3. Permissions Explained</h2>
+    <p><strong>storage</strong> — Required to remember your privacy settings between browser sessions. Data stays on your device only.</p>
+    <p><strong>commands</strong> — Required to register keyboard shortcuts (Ctrl+Shift+H, Ctrl+Shift+K). No keylogging is performed; Chrome handles this natively.</p>
+    <p><strong>host_permissions (web.whatsapp.com)</strong> — Required to inject the visual blur/hide CSS into WhatsApp Web. The extension only reads the DOM to apply visual filters and does not read, parse, or transmit message content.</p>
+
+    <h2>4. Third-Party Services</h2>
+    <p>Chat Privacy Shield does not integrate with, send data to, or communicate with any third-party service. There is no backend server, analytics platform, or tracking system of any kind.</p>
+
+    <h2>5. No Affiliation</h2>
+    <p>Chat Privacy Shield is an independent open-source project. It is <strong>not affiliated with, endorsed by, or connected to WhatsApp LLC, Meta Platforms Inc., or Google LLC</strong> in any way.</p>
+
+    <h2>6. Children's Privacy</h2>
+    <p>This extension does not knowingly collect any information from anyone, including children under the age of 13.</p>
+
+    <h2>7. Changes to This Policy</h2>
+    <p>If this policy is updated, the new version will be published in the Chrome Web Store listing and in the extension's GitHub repository. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
+
+    <h2>8. Contact</h2>
+    <p>Questions or concerns about this privacy policy can be directed to the project's GitHub repository via the Issues tab.</p>
+
+    <hr class="divider">
+    <footer>
+      Chat Privacy Shield · Independent open-source project · Not affiliated with WhatsApp or Meta
+    </footer>
+  </div>
+</body>
+</html>
