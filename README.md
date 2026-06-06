@@ -23,7 +23,7 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 👤 **Hide profile photos** | Blur avatars and shared images |
 | 📝 **Hide names** | Blur contact/group names |
 | 🖱 **Reveal on hover** | Mouse over the panel to reveal temporarily |
-| 🔒 **Boss Key** | Instantly hide everything with one key |
+| 🔒 **Lock Mode** | Instantly hide everything with one command |
 | 🎚 **Blur intensity** | Adjustable slider (2px — 20px) |
 | 💾 **Persistent settings** | Your preferences saved locally |
 
@@ -34,7 +34,7 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | Shortcut | Action |
 |---|---|
 | `Ctrl+Shift+H` | Toggle privacy ON/OFF |
-| `L` | Boss Key — hide everything |
+| `Ctrl+Shift+L` | Lock mode — hide everything |
 | `Ctrl+Shift+K` | Show/hide floating panel |
 
 > On Mac, use `Cmd` instead of `Ctrl`
