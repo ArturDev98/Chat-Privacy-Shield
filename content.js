@@ -123,7 +123,7 @@
       <div class="wps-divider"></div>
 
       <!-- Ocultar avatares -->
-      <button class="wps-btn" id="wps-avatars" data-tip="Hide photos">
+      <button class="wps-btn" id="wps-avatars" data-tip="Hide photos (📷)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
@@ -138,7 +138,7 @@
       </button>
 
       <!-- Hover reveal -->
-      <button class="wps-btn" id="wps-hover" data-tip="Reveal on hover">
+      <button class="wps-btn" id="wps-hover" data-tip="Reveal on hover (👀)" style="font-size:12px; color:rgba(255,255,255,0.3);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/>
         </svg>
@@ -147,7 +147,7 @@
       <div class="wps-divider"></div>
 
       <!-- Boss Key -->
-      <button class="wps-btn" id="wps-boss" data-tip="Boss Key">
+      <button class="wps-btn" id="wps-boss" data-tip="Lock screen (Ctrl+Shift+L)" style="color:rgba(255,100,100,0.8);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -280,7 +280,7 @@
   document.addEventListener("keydown", (e) => {
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.shiftKey && e.key === "H") { e.preventDefault(); togglePrivacy(); }
-    if (e.key === "l" || e.key === "L") { e.preventDefault(); toggleBossKey(); }
+    if (mod && e.shiftKey && e.key.toUpperCase() === "L") { e.preventDefault(); toggleBossKey(); }
     if (mod && e.shiftKey && e.key === "K") { e.preventDefault(); togglePanel(); }
   });
 

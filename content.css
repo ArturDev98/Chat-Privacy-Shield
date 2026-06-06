@@ -89,7 +89,7 @@ body.wps-bosskey::after {
 }
 
 body.wps-bosskey::before {
-  content: "🔒 Chat Privacy Shield — Press L to unlock.";
+  content: "🔒 Chat Privacy Shield — Press CTRL + SHIFT + L to unlock.";
   position: fixed;
   top: 50%;
   left: 50%;
