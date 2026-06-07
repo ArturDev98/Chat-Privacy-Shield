@@ -73,35 +73,6 @@ body.wps-active.wps-hover-reveal.wps-pane-hovered span[dir="auto"][class*="x1iyj
   filter: blur(0px) !important;
 }
 
-/* ---- Boss Key: oculta absolutamente todo ---- */
-body.wps-bosskey #app {
-  visibility: hidden !important;
-  opacity: 0 !important;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
-}
-
-body.wps-bosskey::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: #111b21;
-  z-index: 999999;
-}
-
-body.wps-bosskey::before {
-  content: "🔒 Chat Privacy Shield — Press CTRL + SHIFT + L to unlock.";
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: rgba(255,255,255,0.2);
-  font-family: system-ui, sans-serif;
-  font-size: 14px;
-  letter-spacing: 0.5px;
-  z-index: 9999999;
-  white-space: nowrap;
-}
-
 /* ---- Panel flotante UI ---- */
 #wps-panel {
   position: fixed;
@@ -157,10 +128,6 @@ body.wps-bosskey::before {
   color: #00a884;
 }
 
-.wps-btn.boss-active {
-  background: rgba(220, 53, 69, 0.25);
-  color: #ff6b7a;
-}
 
 .wps-divider {
   width: 1px;

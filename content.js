@@ -19,7 +19,6 @@
 
   let settings = { ...defaults };
   let panel = null;
-  let bossKeyActive = false;
 
   // ---- Cargar settings desde chrome.storage ----
   function loadSettings(cb) {
@@ -92,13 +91,6 @@
     saveSettings();
   }
 
-  // ---- Boss Key ----
-  function toggleBossKey() {
-    bossKeyActive = !bossKeyActive;
-    document.body.classList.toggle("wps-bosskey", bossKeyActive);
-    updatePanelUI();
-  }
-
   // ---- Construir panel flotante ----
   function buildPanel() {
     if (document.getElementById("wps-panel")) return;
@@ -146,13 +138,6 @@
 
       <div class="wps-divider"></div>
 
-      <!-- Boss Key -->
-      <button class="wps-btn" id="wps-boss" data-tip="Lock screen (Ctrl+Shift+L)" style="color:rgba(255,100,100,0.8);">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </button>
 
       <!-- Ocultar/mostrar panel -->
       <button class="wps-btn" id="wps-pin" data-tip="Hide panel (Ctrl+Shift+K)" style="font-size:11px; color:rgba(255,255,255,0.3);">
@@ -193,8 +178,6 @@
       saveSettings();
     });
 
-    document.getElementById("wps-boss").addEventListener("click", toggleBossKey);
-
     document.getElementById("wps-pin").addEventListener("click", () => {
       settings.panelVisible = false;
       panel.classList.add("wps-panel-hidden");
@@ -214,7 +197,6 @@
     const avatarsBtn = document.getElementById("wps-avatars");
     const namesBtn = document.getElementById("wps-names");
     const hoverBtn = document.getElementById("wps-hover");
-    const bossBtn = document.getElementById("wps-boss");
     const slider = document.getElementById("wps-blur-slider");
     const sliderWrap = document.getElementById("wps-slider-wrap");
 
@@ -222,7 +204,6 @@
     avatarsBtn?.classList.toggle("active", settings.hideAvatars);
     namesBtn?.classList.toggle("active", settings.hideNames);
     hoverBtn?.classList.toggle("active", settings.hoverReveal);
-    bossBtn?.classList.toggle("boss-active", bossKeyActive);
 
     if (slider) slider.value = settings.blurLevel;
     sliderWrap?.classList.toggle("visible", settings.privacyActive);
@@ -268,7 +249,6 @@
   // ---- Escuchar mensajes desde background/popup ----
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === "toggle-privacy") togglePrivacy();
-    if (msg.action === "boss-key") toggleBossKey();
     if (msg.action === "toggle-panel") togglePanel();
     if (msg.action === "sync-settings" && msg.settings) {
       settings = { ...settings, ...msg.settings };
@@ -280,7 +260,6 @@
   document.addEventListener("keydown", (e) => {
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.shiftKey && e.key === "H") { e.preventDefault(); togglePrivacy(); }
-    if (mod && e.shiftKey && e.key.toUpperCase() === "L") { e.preventDefault(); toggleBossKey(); }
     if (mod && e.shiftKey && e.key === "K") { e.preventDefault(); togglePanel(); }
   });
 
