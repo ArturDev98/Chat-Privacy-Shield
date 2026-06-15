@@ -51,6 +51,10 @@
     body.classList.toggle("wps-hide-avatars", settings.hideAvatars);
     body.classList.toggle("wps-hide-names", settings.hideNames);
     body.classList.toggle("wps-hover-reveal", settings.hoverReveal);
+    // Si se desactiva hover reveal, limpiar items revelados que queden
+    if (!settings.hoverReveal) {
+      document.querySelectorAll(".wps-revealed").forEach(el => el.classList.remove("wps-revealed"));
+    }
 
     // CSS variables dinámicas
     body.style.setProperty("--wps-blur", `${settings.blurLevel}px`);
@@ -59,14 +63,66 @@
     updatePanelUI();
   }
 
-  // ---- Hover reveal: listener sobre #pane-side y #main ----
+  // ---- Hover reveal: por item individual en la lista de chats ----
   function setupHoverReveal() {
-    [["pane-side", "wps-pane-hovered"], ["main", "wps-main-hovered"]].forEach(([id, cls]) => {
-      const el = document.getElementById(id);
-      if (!el || el._wpsHoverBound) return;
-      el._wpsHoverBound = true;
-      el.addEventListener("mouseenter", () => document.body.classList.add(cls));
-      el.addEventListener("mouseleave", () => document.body.classList.remove(cls));
+    // #main: listener global (imágenes compartidas dentro del chat abierto)
+    const main = document.getElementById("main");
+    if (main && !main._wpsHoverBound) {
+      main._wpsHoverBound = true;
+      main.addEventListener("mouseenter", () => document.body.classList.add("wps-main-hovered"));
+      main.addEventListener("mouseleave", () => document.body.classList.remove("wps-main-hovered"));
+    }
+
+    // #pane-side: hover por cada chat individualmente
+    const pane = document.getElementById("pane-side");
+    if (!pane || pane._wpsHoverBound) return;
+    pane._wpsHoverBound = true;
+
+    // Selector real del contenedor de cada fila de chat (confirmado via consola)
+    const ITEM_SELECTORS = '[data-testid^="list-item-"]';
+
+    pane.addEventListener("mouseover", (e) => {
+      if (!settings.hoverReveal) return;
+      const item = e.target.closest(ITEM_SELECTORS);
+      if (item) item.classList.add("wps-revealed");
+    });
+
+    pane.addEventListener("mouseout", (e) => {
+      if (!settings.hoverReveal) return;
+      const item = e.target.closest(ITEM_SELECTORS);
+      if (item) {
+        const related = e.relatedTarget;
+        if (!item.contains(related)) {
+          item.classList.remove("wps-revealed");
+        }
+      }
+    });
+
+    // archived-chatlist: se monta dinámicamente, usar observer dedicado
+    bindArchivedChatlist();
+  }
+
+  // ---- Enlazar archived-chatlist cuando aparece en el DOM ----
+  function bindArchivedChatlist() {
+    const archived = document.querySelector('[data-testid="archived-chatlist"]');
+    if (!archived || archived._wpsHoverBound) return;
+    archived._wpsHoverBound = true;
+
+    const ITEM_SELECTORS = '[data-testid^="list-item-"]';
+
+    archived.addEventListener("mouseover", (e) => {
+      if (!settings.hoverReveal) return;
+      const item = e.target.closest(ITEM_SELECTORS);
+      if (item) item.classList.add("wps-revealed");
+    });
+
+    archived.addEventListener("mouseout", (e) => {
+      if (!settings.hoverReveal) return;
+      const item = e.target.closest(ITEM_SELECTORS);
+      if (item) {
+        const related = e.relatedTarget;
+        if (!item.contains(related)) item.classList.remove("wps-revealed");
+      }
     });
   }
 
@@ -268,7 +324,18 @@
     loadSettings(() => {
       applyState();
       buildPanel();
-      setupHoverReveal();
+
+      // pane-side puede no existir aún — reintentar hasta que aparezca
+      function tryBindPane() {
+        const pane = document.getElementById("pane-side");
+        if (pane) {
+          setupHoverReveal();
+        } else {
+          setTimeout(tryBindPane, 300);
+        }
+      }
+      tryBindPane();
+
       if (!settings.panelVisible) {
         panel.classList.add("wps-panel-hidden");
         showRestoreHint();
@@ -284,12 +351,25 @@
   }
 
   // También observar cuando WhatsApp monta su app (SPA)
-  const observer = new MutationObserver(() => {
-    if (document.getElementById("app") && !document.getElementById("wps-panel")) {
-      buildPanel();
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType !== 1) continue;
+
+        // Panel principal
+        if (node.id === "app" && !document.getElementById("wps-panel")) {
+          buildPanel();
+          setupHoverReveal();
+        }
+
+        // archived-chatlist montado dinámicamente
+        const archived = node.matches?.('[data-testid="archived-chatlist"]')
+          ? node
+          : node.querySelector?.('[data-testid="archived-chatlist"]');
+        if (archived) bindArchivedChatlist();
+      }
     }
-    setupHoverReveal();
   });
-  observer.observe(document.body, { childList: true, subtree: false });
+  observer.observe(document.body, { childList: true, subtree: true });
 
 })();

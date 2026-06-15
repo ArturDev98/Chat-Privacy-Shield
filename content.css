@@ -10,25 +10,40 @@
 }
 
 /* ---- Panel lateral de chats (lista) ---- */
-body.wps-active #pane-side {
+/* Blur aplicado por item individual — evita el problema de filter en contenedor padre */
+body.wps-active #pane-side [data-testid^="list-item-"],
+body.wps-active [data-testid="archived-chatlist"] [data-testid^="list-item-"] {
   filter: blur(var(--wps-blur));
   opacity: var(--wps-opacity);
   transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+/* Sin hover reveal: bloquear clicks accidentales */
+body.wps-active:not(.wps-hover-reveal) #pane-side,
+body.wps-active:not(.wps-hover-reveal) [data-testid="archived-chatlist"] {
   pointer-events: none;
 }
 
-/* Hover reveal: quita blur del panel completo (fotos y nombres incluidos) */
-body.wps-active.wps-hover-reveal #pane-side:hover {
-  filter: blur(0px);
-  opacity: 1;
+/* Con hover reveal: el panel recibe eventos para detectar el cursor */
+body.wps-active.wps-hover-reveal #pane-side,
+body.wps-active.wps-hover-reveal [data-testid="archived-chatlist"] {
   pointer-events: auto;
 }
 
-/* Hover reveal: también aplica dentro del chat abierto (#main) */
-body.wps-active.wps-hover-reveal #main:hover img[src*="blob:"],
-body.wps-active.wps-hover-reveal #main:hover img[src*="data:"],
-body.wps-active.wps-hover-reveal.wps-pane-hovered img[src*="blob:"],
-body.wps-active.wps-hover-reveal.wps-pane-hovered img[src*="data:"],
+/* Hover reveal: solo el item bajo el cursor se revela */
+body.wps-active.wps-hover-reveal #pane-side [data-testid^="list-item-"].wps-revealed,
+body.wps-active.wps-hover-reveal [data-testid="archived-chatlist"] [data-testid^="list-item-"].wps-revealed {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+}
+
+/* Hover reveal dentro del chat abierto (#main): imagen individual */
+body.wps-active.wps-hover-reveal #main img[src*="blob:"]:hover,
+body.wps-active.wps-hover-reveal #main img[src*="data:"]:hover {
+  filter: blur(0px) !important;
+  transition: filter 0.15s ease;
+}
+
 body.wps-active.wps-hover-reveal.wps-main-hovered img[src*="blob:"],
 body.wps-active.wps-hover-reveal.wps-main-hovered img[src*="data:"] {
   filter: blur(0px) !important;
