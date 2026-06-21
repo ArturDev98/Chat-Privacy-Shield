@@ -9,6 +9,7 @@ const defaults = {
   hideNames: true,
   hoverReveal: false,
   panelVisible: true,
+  lang: "en",
 };
 
 let settings = { ...defaults };
@@ -24,15 +25,29 @@ function saveAndSync() {
   });
 }
 
+function applyTranslations() {
+  const lang = settings.lang;
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    el.textContent = cpsT(key, lang);
+  });
+
+  document.getElementById("lang-toggle").textContent = lang.toUpperCase();
+}
+
 function updateUI() {
   document.getElementById("main-toggle").checked = settings.privacyActive;
-  document.getElementById("status-text").textContent = settings.privacyActive ? "Active" : "Inactive";
+  document.getElementById("status-text").textContent = settings.privacyActive
+    ? cpsT("statusActive", settings.lang)
+    : cpsT("statusInactive", settings.lang);
   document.getElementById("status-text").style.color = settings.privacyActive ? "#00a884" : "rgba(255,255,255,0.4)";
   document.getElementById("blur-slider").value = settings.blurLevel;
   document.getElementById("blur-val").textContent = `${settings.blurLevel}px`;
   document.getElementById("toggle-avatars").checked = settings.hideAvatars;
   document.getElementById("toggle-names").checked = settings.hideNames;
   document.getElementById("toggle-hover").checked = settings.hoverReveal;
+  applyTranslations();
 }
 
 // ---- Cargar estado ----
@@ -66,5 +81,11 @@ document.getElementById("toggle-names").addEventListener("change", (e) => {
 
 document.getElementById("toggle-hover").addEventListener("change", (e) => {
   settings.hoverReveal = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("lang-toggle").addEventListener("click", () => {
+  settings.lang = settings.lang === "en" ? "es" : "en";
+  updateUI();
   saveAndSync();
 });

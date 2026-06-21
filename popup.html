@@ -26,6 +26,28 @@
       gap: 10px;
     }
 
+    .lang-btn {
+      margin-left: auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.55);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .lang-btn:hover {
+      background: rgba(0,168,132,0.15);
+      color: #00a884;
+      border-color: rgba(0,168,132,0.3);
+    }
+
     .logo {
       width: 32px;
       height: 32px;
@@ -238,6 +260,7 @@
       <h1>Chat Privacy Shield</h1>
       <p>web.whatsapp.com</p>
     </div>
+    <button id="lang-toggle" class="lang-btn">EN</button>
   </div>
 
   <div class="status-bar">
@@ -250,14 +273,14 @@
   </div>
 
   <div class="section">
-    <div class="section-title">Blur Intensity</div>
+    <div class="section-title" data-i18n="sectionBlurIntensity">Blur Intensity</div>
     <div class="row slider-row">
       <div class="slider-header">
         <div class="row-label">
           <div class="row-icon">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
           </div>
-          Blur level
+          <span data-i18n="blurLevel">Blur level</span>
         </div>
         <span class="slider-val" id="blur-val">8px</span>
       </div>
@@ -266,14 +289,14 @@
   </div>
 
   <div class="section">
-    <div class="section-title">Options</div>
+    <div class="section-title" data-i18n="sectionOptions">Options</div>
 
     <div class="row">
       <div class="row-label">
         <div class="row-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
-        Hide photos
+        <span data-i18n="hidePhotos">Hide profile photos</span>
       </div>
       <label class="toggle">
         <input type="checkbox" id="toggle-avatars" checked>
@@ -287,7 +310,7 @@
         <div class="row-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>
         </div>
-        Hide names
+        <span data-i18n="hideNames">Hide names</span>
       </div>
       <label class="toggle">
         <input type="checkbox" id="toggle-names" checked>
@@ -301,7 +324,7 @@
         <div class="row-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </div>
-        Reveal on hover
+        <span data-i18n="revealOnHover">Reveal on hover</span>
       </div>
       <label class="toggle">
         <input type="checkbox" id="toggle-hover">
@@ -313,20 +336,21 @@
 
   <div class="shortcuts">
     <div class="shortcut-row">
-      <span class="shortcut-label">Toggle privacy</span>
+      <span class="shortcut-label" data-i18n="togglePrivacy">Toggle privacy</span>
       <div class="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>H</kbd></div>
     </div>
     <div class="shortcut-row">
-      <span class="shortcut-label">Show/hide panel</span>
+      <span class="shortcut-label" data-i18n="showHidePanel">Show/hide panel</span>
       <div class="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>K</kbd></div>
     </div>
   </div>
 
   <div class="disclaimer">
-    <a href="https://web.whatsapp.com" target="_blank" class="open-wa">Open WhatsApp Web →</a>
-    <p class="disclaimer-text">Not affiliated with WhatsApp, Meta, or Google.<br>No data is collected or transmitted.</p>
+    <a href="https://web.whatsapp.com" target="_blank" class="open-wa" data-i18n="openWhatsApp">Open WhatsApp Web →</a>
+    <p class="disclaimer-text"><span data-i18n="disclaimer">Not affiliated with WhatsApp, Meta, or Google.</span><br><span data-i18n="disclaimer2">No data is collected or transmitted.</span></p>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

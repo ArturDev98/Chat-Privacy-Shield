@@ -15,6 +15,7 @@
     hideNames: true,
     hoverReveal: false,
     panelVisible: true,
+    lang: "en",
   };
 
   let settings = { ...defaults };
@@ -155,7 +156,7 @@
     panel.id = "wps-panel";
     panel.innerHTML = `
       <!-- Botón toggle privacidad -->
-      <button class="wps-btn" id="wps-toggle" data-tip="Privacy (Ctrl+Shift+H)">
+      <button class="wps-btn" id="wps-toggle" data-tip="${cpsT('panelTooltipPrivacyOff', settings.lang)}">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
@@ -171,7 +172,7 @@
       <div class="wps-divider"></div>
 
       <!-- Ocultar avatares -->
-      <button class="wps-btn" id="wps-avatars" data-tip="Hide photos (📷)">
+      <button class="wps-btn" id="wps-avatars" data-tip="${cpsT('panelTooltipPhotos', settings.lang)}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
@@ -179,14 +180,14 @@
       </button>
 
       <!-- Hide names -->
-      <button class="wps-btn" id="wps-names" data-tip="Hide names">
+      <button class="wps-btn" id="wps-names" data-tip="${cpsT('panelTooltipNames', settings.lang)}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/>
         </svg>
       </button>
 
       <!-- Hover reveal -->
-      <button class="wps-btn" id="wps-hover" data-tip="Reveal on hover (👀)" style="font-size:12px; color:rgba(255,255,255,0.3);">
+      <button class="wps-btn" id="wps-hover" data-tip="${cpsT('panelTooltipHover', settings.lang)}" style="font-size:12px; color:rgba(255,255,255,0.3);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/>
         </svg>
@@ -194,9 +195,13 @@
 
       <div class="wps-divider"></div>
 
+      <!-- Idioma -->
+      <button class="wps-btn" id="wps-lang" data-tip="${cpsT('language', settings.lang)}" style="font-size:10px; font-weight:700; letter-spacing:0.5px;">
+        ${settings.lang.toUpperCase()}
+      </button>
 
       <!-- Ocultar/mostrar panel -->
-      <button class="wps-btn" id="wps-pin" data-tip="Hide panel (Ctrl+Shift+K)" style="font-size:11px; color:rgba(255,255,255,0.3);">
+      <button class="wps-btn" id="wps-pin" data-tip="${cpsT('panelTooltipHidePanel', settings.lang)}" style="font-size:11px; color:rgba(255,255,255,0.3);">
         ✕
       </button>
     `;
@@ -242,6 +247,12 @@
       showRestoreHint();
     });
 
+    document.getElementById("wps-lang").addEventListener("click", () => {
+      settings.lang = settings.lang === "en" ? "es" : "en";
+      applyState();
+      saveSettings();
+    });
+
     updatePanelUI();
   }
 
@@ -253,6 +264,8 @@
     const avatarsBtn = document.getElementById("wps-avatars");
     const namesBtn = document.getElementById("wps-names");
     const hoverBtn = document.getElementById("wps-hover");
+    const langBtn = document.getElementById("wps-lang");
+    const pinBtn = document.getElementById("wps-pin");
     const slider = document.getElementById("wps-blur-slider");
     const sliderWrap = document.getElementById("wps-slider-wrap");
 
@@ -264,9 +277,17 @@
     if (slider) slider.value = settings.blurLevel;
     sliderWrap?.classList.toggle("visible", settings.privacyActive);
 
-    // Actualizar tooltip del toggle
-    if (toggle) {
-      toggle.setAttribute("data-tip", settings.privacyActive ? "Disable privacy (Ctrl+Shift+H)" : "Enable privacy (Ctrl+Shift+H)");
+    // Actualizar todos los tooltips con el idioma actual
+    toggle?.setAttribute("data-tip", settings.privacyActive
+      ? cpsT("panelTooltipPrivacyOn", settings.lang)
+      : cpsT("panelTooltipPrivacyOff", settings.lang));
+    avatarsBtn?.setAttribute("data-tip", cpsT("panelTooltipPhotos", settings.lang));
+    namesBtn?.setAttribute("data-tip", cpsT("panelTooltipNames", settings.lang));
+    hoverBtn?.setAttribute("data-tip", cpsT("panelTooltipHover", settings.lang));
+    pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
+    if (langBtn) {
+      langBtn.textContent = settings.lang.toUpperCase();
+      langBtn.setAttribute("data-tip", cpsT("language", settings.lang));
     }
   }
 
@@ -292,7 +313,7 @@
       letterSpacing: "0.3px",
       transition: "opacity 0.2s",
     });
-    hint.textContent = "🛡 CPS — click to show panel";
+    hint.textContent = cpsT("restoreHint", settings.lang);
     hint.addEventListener("click", () => {
       settings.panelVisible = true;
       panel.classList.remove("wps-panel-hidden");
