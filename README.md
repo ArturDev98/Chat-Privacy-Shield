@@ -25,7 +25,8 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 🖱 **Reveal on hover** | Mouse over the panel to reveal temporarily |
 | 🎚 **Blur intensity** | Adjustable slider (2px — 20px) |
 | 💾 **Persistent settings** | Your preferences saved locally |
-| ES **Change Language** | Switch to different languages (EN, ES, DE, RU, AR, ZH) |
+| 🌐 **Change Language** | Switch to different languages (EN, ES, DE, RU, AR, ZH) |
+
 ---
 
 ## Keyboard Shortcuts
