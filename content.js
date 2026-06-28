@@ -196,7 +196,7 @@
       <div class="wps-divider"></div>
 
       <!-- Idioma -->
-      <button class="wps-btn" id="wps-lang" data-tip="${cpsT('language', settings.lang)}" style="font-size:10px; font-weight:700; letter-spacing:0.5px;">
+      <button class="wps-btn" id="wps-lang" data-tip="${cpsT('language', settings.lang)} — EN › ES › DE › RU › AR › ZH" style="font-size:10px; font-weight:700; letter-spacing:0.5px;">
         ${settings.lang.toUpperCase()}
       </button>
 
@@ -248,7 +248,7 @@
     });
 
     document.getElementById("wps-lang").addEventListener("click", () => {
-      settings.lang = settings.lang === "en" ? "es" : "en";
+      settings.lang = cpsNextLang(settings.lang);
       applyState();
       saveSettings();
     });
@@ -314,6 +314,7 @@
       transition: "opacity 0.2s",
     });
     hint.textContent = cpsT("restoreHint", settings.lang);
+    hint.style.direction = cpsIsRTL(settings.lang) ? "rtl" : "ltr";
     hint.addEventListener("click", () => {
       settings.panelVisible = true;
       panel.classList.remove("wps-panel-hidden");

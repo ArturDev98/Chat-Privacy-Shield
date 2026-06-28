@@ -250,6 +250,17 @@
     }
 
     .open-wa:hover { color: #00a884; }
+
+    /* ---- RTL support (Arabic) ---- */
+    [dir="rtl"] .header { flex-direction: row-reverse; }
+    [dir="rtl"] .lang-btn { margin-left: 0; margin-right: auto; }
+    [dir="rtl"] .row { flex-direction: row-reverse; }
+    [dir="rtl"] .row-label { flex-direction: row-reverse; }
+    [dir="rtl"] .shortcut-row { flex-direction: row-reverse; }
+    [dir="rtl"] .slider-header { flex-direction: row-reverse; }
+    [dir="rtl"] .kbd-group { flex-direction: row-reverse; }
+    [dir="rtl"] .disclaimer { direction: rtl; }
+    [dir="rtl"] .status-bar { flex-direction: row-reverse; }
   </style>
 </head>
 <body>
@@ -260,7 +271,7 @@
       <h1>Chat Privacy Shield</h1>
       <p>web.whatsapp.com</p>
     </div>
-    <button id="lang-toggle" class="lang-btn">EN</button>
+    <button id="lang-toggle" class="lang-btn" title="EN › ES › DE › RU › AR › ZH">EN</button>
   </div>
 
   <div class="status-bar">

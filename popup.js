@@ -27,6 +27,10 @@ function saveAndSync() {
 
 function applyTranslations() {
   const lang = settings.lang;
+  const isRTL = cpsIsRTL(lang);
+
+  // Aplicar dirección RTL/LTR al documento completo
+  document.documentElement.setAttribute("dir", isRTL ? "rtl" : "ltr");
 
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
@@ -85,7 +89,7 @@ document.getElementById("toggle-hover").addEventListener("change", (e) => {
 });
 
 document.getElementById("lang-toggle").addEventListener("click", () => {
-  settings.lang = settings.lang === "en" ? "es" : "en";
+  settings.lang = cpsNextLang(settings.lang);
   updateUI();
   saveAndSync();
 });
