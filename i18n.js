@@ -25,6 +25,8 @@ const CPS_I18N = {
     disclaimer2: "No data is collected or transmitted.",
     language: "Language",
     rtl: false,
+    statusPreviewCount: "states · showing 1st",
+    statusPreviewOnly: "Preview",
   },
   es: {
     panelTooltipPrivacyOn: "Desactivar privacidad (Ctrl+Shift+H)",
@@ -49,6 +51,8 @@ const CPS_I18N = {
     disclaimer2: "No se recopilan ni transmiten datos.",
     language: "Idioma",
     rtl: false,
+    statusPreviewCount: "estados · Viendo el primero",
+    statusPreviewOnly: "Vista previa",
   },
   de: {
     panelTooltipPrivacyOn: "Datenschutz deaktivieren (Ctrl+Shift+H)",
@@ -73,6 +77,8 @@ const CPS_I18N = {
     disclaimer2: "Es werden keine Daten erfasst oder übertragen.",
     language: "Sprache",
     rtl: false,
+    statusPreviewCount: "Status · zeigt 1. an",
+    statusPreviewOnly: "Vorschau",
   },
   ru: {
     panelTooltipPrivacyOn: "Отключить конфиденциальность (Ctrl+Shift+H)",
@@ -97,6 +103,8 @@ const CPS_I18N = {
     disclaimer2: "Данные не собираются и не передаются.",
     language: "Язык",
     rtl: false,
+    statusPreviewCount: "состояния · показан 1-й",
+    statusPreviewOnly: "Предпросмотр",
   },
   ar: {
     panelTooltipPrivacyOn: "تعطيل الخصوصية (Ctrl+Shift+H)",
@@ -121,6 +129,8 @@ const CPS_I18N = {
     disclaimer2: "لا يتم جمع أو نقل أي بيانات.",
     language: "اللغة",
     rtl: true,
+    statusPreviewCount: "الحالات · يعرض الأول",
+    statusPreviewOnly: "المعاينة",
   },
   zh: {
     panelTooltipPrivacyOn: "关闭隐私模式 (Ctrl+Shift+H)",
@@ -145,6 +155,8 @@ const CPS_I18N = {
     disclaimer2: "不收集或传输任何数据。",
     language: "语言",
     rtl: false,
+    statusPreviewCount: "状态 · 显示第一个",
+    statusPreviewOnly: "预览",
   },
 };
 

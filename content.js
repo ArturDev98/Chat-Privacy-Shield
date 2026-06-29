@@ -196,7 +196,7 @@
       <div class="wps-divider"></div>
 
       <!-- Idioma -->
-      <button class="wps-btn" id="wps-lang" data-tip="${cpsT('language', settings.lang)} — EN › ES › DE › RU › AR › ZH" style="font-size:10px; font-weight:700; letter-spacing:0.5px;">
+      <button class="wps-btn" id="wps-lang" data-tip="${cpsT('language', settings.lang)}" style="font-size:10px; font-weight:700; letter-spacing:0.5px;">
         ${settings.lang.toUpperCase()}
       </button>
 
@@ -341,6 +341,92 @@
     if (mod && e.shiftKey && e.key === "K") { e.preventDefault(); togglePanel(); }
   });
 
+  // ---- Status Preview ----
+  const CIRCUNFERENCIA = 2 * Math.PI * 50;
+
+  function countStates(cell) {
+    const circle = cell.querySelector("circle");
+    if (!circle) return 0;
+    const dasharray = circle.getAttribute("stroke-dasharray");
+    if (!dasharray) return 0;
+    const values = dasharray.split(" ").map(Number).filter(Boolean);
+    const arcValue = Math.max(...values);
+    if (arcValue <= 0) return 0;
+    return Math.round(CIRCUNFERENCIA / (arcValue + 10));
+  }
+
+  function buildStatusPreview() {
+    if (document.getElementById("cps-status-preview")) return;
+
+    const preview = document.createElement("div");
+    preview.id = "cps-status-preview";
+    preview.innerHTML = `
+      <div class="cps-sp-name"></div>
+      <div class="cps-sp-noimg"><span>👁</span>Preview</div>
+      <div class="cps-sp-count"></div>
+    `;
+    document.body.appendChild(preview);
+  }
+
+  function setupStatusPreview() {
+    const drawer = document.querySelector('[data-testid="status-drawer"]');
+    if (!drawer || drawer._wpsStatusBound) return;
+    drawer._wpsStatusBound = true;
+
+    buildStatusPreview();
+    const preview = document.getElementById("cps-status-preview");
+    const nameEl = preview.querySelector(".cps-sp-name");
+    const countEl = preview.querySelector(".cps-sp-count");
+    const noImgEl = preview.querySelector(".cps-sp-noimg");
+
+    drawer.addEventListener("mouseover", (e) => {
+      if (!settings.privacyActive) return;
+
+      const cell = e.target.closest('[data-testid="status-row-cell"]');
+      if (!cell) return;
+
+      // Obtener thumbnail
+      const thumbDiv = cell.querySelector('[data-testid="status-thumbnail"] div div');
+      const bg = thumbDiv ? window.getComputedStyle(thumbDiv).backgroundImage : null;
+
+      // Nombre del contacto
+      const name = cell.querySelector('[data-testid="cell-frame-title"]')?.textContent || "";
+      nameEl.textContent = name;
+
+      // Conteo de estados
+      const count = countStates(cell);
+      const countLabel = count > 5 ? "+5" : count;
+      countEl.textContent = count > 1
+        ? `👁 ${countLabel} ${cpsT("statusPreviewCount", settings.lang)}`
+        : cpsT("statusPreviewOnly", settings.lang);
+
+      if (bg && bg !== "none") {
+        preview.style.backgroundImage = bg;
+        noImgEl.style.display = "none";
+      } else {
+        preview.style.backgroundImage = "none";
+        noImgEl.style.display = "flex";
+      }
+
+      preview.classList.add("visible");
+    });
+
+    drawer.addEventListener("mousemove", (e) => {
+      if (!settings.privacyActive) return;
+      const x = e.clientX + 24;
+      const y = Math.max(10, Math.min(e.clientY - 80, window.innerHeight - 320));
+      preview.style.left = x + "px";
+      preview.style.top = y + "px";
+    });
+
+    drawer.addEventListener("mouseout", (e) => {
+      const cell = e.target.closest('[data-testid="status-row-cell"]');
+      if (!cell || !cell.contains(e.relatedTarget)) {
+        preview.classList.remove("visible");
+      }
+    });
+  }
+
   // ---- Init ----
   function init() {
     loadSettings(() => {
@@ -357,6 +443,17 @@
         }
       }
       tryBindPane();
+
+      // Status preview — el drawer puede montarse después
+      function tryBindStatus() {
+        const drawer = document.querySelector('[data-testid="status-drawer"]');
+        if (drawer) {
+          setupStatusPreview();
+        } else {
+          setTimeout(tryBindStatus, 500);
+        }
+      }
+      tryBindStatus();
 
       if (!settings.panelVisible) {
         panel.classList.add("wps-panel-hidden");
@@ -389,6 +486,12 @@
           ? node
           : node.querySelector?.('[data-testid="archived-chatlist"]');
         if (archived) bindArchivedChatlist();
+
+        // status-drawer montado dinámicamente
+        const statusDrawer = node.matches?.('[data-testid="status-drawer"]')
+          ? node
+          : node.querySelector?.('[data-testid="status-drawer"]');
+        if (statusDrawer) setupStatusPreview();
       }
     }
   });
