@@ -39,6 +39,9 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 
 > On Mac, use `Cmd` instead of `Ctrl`
 
+**Status Preview**: Shows a low-resolution thumbnail of the first status.
+Additional statuses are not loaded to avoid triggering read receipts.
+
 ---
 
 ## Installation (Developer Mode)
