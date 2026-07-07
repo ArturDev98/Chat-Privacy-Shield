@@ -9,6 +9,9 @@ const defaults = {
   hideNames: true,
   hoverReveal: false,
   panelVisible: true,
+  showBadges: false,
+  blurMain: false,
+  hideTypedText: false,
   lang: "en",
 };
 
@@ -51,6 +54,9 @@ function updateUI() {
   document.getElementById("toggle-avatars").checked = settings.hideAvatars;
   document.getElementById("toggle-names").checked = settings.hideNames;
   document.getElementById("toggle-hover").checked = settings.hoverReveal;
+  document.getElementById("toggle-badges").checked = settings.showBadges;
+  document.getElementById("toggle-blur-main").checked = settings.blurMain;
+  document.getElementById("toggle-hide-typed").checked = settings.hideTypedText;
   applyTranslations();
 }
 
@@ -85,6 +91,21 @@ document.getElementById("toggle-names").addEventListener("change", (e) => {
 
 document.getElementById("toggle-hover").addEventListener("change", (e) => {
   settings.hoverReveal = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-badges").addEventListener("change", (e) => {
+  settings.showBadges = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-blur-main").addEventListener("change", (e) => {
+  settings.blurMain = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-hide-typed").addEventListener("change", (e) => {
+  settings.hideTypedText = e.target.checked;
   saveAndSync();
 });
 

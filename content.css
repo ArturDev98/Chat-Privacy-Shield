@@ -88,6 +88,61 @@ body.wps-active.wps-hover-reveal.wps-pane-hovered span[dir="auto"][class*="x1iyj
   filter: blur(0px) !important;
 }
 
+/* ---- Difuminar conversación activa (#main) ---- */
+/* Se excluye el footer (compose box) a propósito: la caja de texto debe
+   seguir siendo usable mientras el resto de la conversación está oculto. */
+
+/* Header: se revela al pasar el cursor por cualquier parte de #main
+   (el nombre/foto del contacto es menos sensible que el contenido) */
+body.wps-active.wps-blur-main #main header {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+  pointer-events: none;
+}
+
+body.wps-active.wps-blur-main.wps-main-hovered #main header {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+  pointer-events: auto;
+}
+
+/* Mensajes: cada burbuja se difumina individualmente y solo se revela la
+   que está bajo el cursor — más privado que revelar toda la conversación
+   de una sola vez al pasar el mouse por cualquier parte de #main. */
+body.wps-active.wps-blur-main [data-testid="conversation-panel-messages"] [data-testid="msg-container"] {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+body.wps-active.wps-blur-main [data-testid="conversation-panel-messages"] [data-testid="msg-container"].wps-msg-revealed {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+}
+
+/* ---- Badge de mensajes no leídos (overlay clonado) ---- */
+/* El clon vive fuera del árbol difuminado, así que nunca hereda el blur
+   del item original — ver updateBadgeOverlays() en content.js */
+.wps-badge-clone {
+  position: fixed;
+  z-index: 99997;
+  pointer-events: none;
+  filter: none !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* ---- Ocultar texto escrito al perder el foco del input de chat ---- */
+body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"].wps-input-blurred {
+  filter: blur(5px);
+  transition: filter 0.2s ease;
+}
+
+body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"]:focus {
+  filter: blur(0px) !important;
+}
+
 /* ---- Panel flotante UI ---- */
 #wps-panel {
   position: fixed;
@@ -114,6 +169,37 @@ body.wps-active.wps-hover-reveal.wps-pane-hovered span[dir="auto"][class*="x1iyj
   opacity: 0;
   transform: translateX(-50%) translateY(12px);
   pointer-events: none;
+}
+
+/* ---- Pastilla "restaurar panel" cuando está minimizado ----
+   Muy transparente por defecto para no tapar lo que se está escribiendo
+   en el input de chat de WhatsApp (que suele quedar justo debajo);
+   se vuelve legible al pasar el cursor por encima. */
+#wps-restore-hint {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(17, 27, 33, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  padding: 6px 14px;
+  z-index: 99998;
+  cursor: pointer;
+  font-family: system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.3px;
+  opacity: 0.32;
+  transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+#wps-restore-hint:hover {
+  opacity: 1;
+  background: rgba(17, 27, 33, 0.9);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .wps-btn {

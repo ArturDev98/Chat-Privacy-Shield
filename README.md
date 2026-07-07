@@ -27,6 +27,9 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 💾 **Persistent settings** | Your preferences saved locally |
 | 👁 **Status preview** | Hover over a contact's status to preview it without marking as read |
 | 🌐 **Change Language** | Switch between EN, ES, DE, RU, AR, ZH |
+| 🔔 **Show unread badges** | Keep unread message counters visible even while the chat list is blurred |
+| 💬 **Blur active conversation** | Blur the open chat's messages (compose box stays usable) |
+| ⌨️ **Hide typed text on blur** | Blur what you're typing when the chat input loses focus |
 
 ---
 
