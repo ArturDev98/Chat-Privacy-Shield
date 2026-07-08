@@ -789,6 +789,129 @@
     window.addEventListener("load", init);
   }
 
+  // ---- Descargar estados (fotos y videos) ----
+  // El visor de estados usa <video>/<img>. Las fotos suelen cargar como
+  // `src="blob:..."`, pero los videos a veces usan una ruta relativa
+  // propia de WhatsApp (`/stream/video?key=...`) en vez de blob — como es
+  // same-origin, el fetch() funciona igual en ambos casos.
+  function findStatusMenuButton() {
+    // Se ancla al <title> interno "ic-more-vert" del ícono de tres puntos
+    // en vez del aria-label ("Menú"), que cambia según el idioma de
+    // WhatsApp — el nombre del ícono no se traduce.
+    return findButtonByIconTitle((name) => name === "ic-more-vert");
+  }
+
+  function findStatusPlayButton() {
+    // Solo existe en estados de video (reproducir/pausar); las fotos no
+    // tienen este botón, por eso el ícono de menú queda como respaldo.
+    return findButtonByIconTitle((name) => name.startsWith("ic-play") || name.startsWith("ic-pause"));
+  }
+
+  function findButtonByIconTitle(matches) {
+    const titles = document.querySelectorAll("svg title");
+    for (const t of titles) {
+      if (matches(t.textContent || "")) {
+        const btn = t.closest("button");
+        if (btn) return btn;
+      }
+    }
+    return null;
+  }
+
+  function getActiveStatusMedia() {
+    // Puede haber más de un <video>/<img> en el DOM a la vez (WhatsApp
+    // precarga el estado siguiente/anterior) — se toma el que esté
+    // realmente visible en pantalla en este momento.
+    // Las fotos SÍ deben exigir blob: (si no, se cuela algún thumbnail
+    // pequeño de por medio); los videos se dejan abiertos a cualquier
+    // src porque WhatsApp a veces usa una ruta /stream/video en vez de
+    // blob para ellos.
+    const candidates = document.querySelectorAll('video, img[src^="blob:"]');
+    for (const el of candidates) {
+      if (!el.src) continue;
+      const style = window.getComputedStyle(el);
+      if (style.visibility === "hidden" || style.display === "none") continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 200 && rect.height > 200) return el;
+    }
+    return null;
+  }
+
+  async function downloadCurrentStatus() {
+    const media = getActiveStatusMedia();
+    if (!media) return;
+
+    try {
+      const response = await fetch(media.src);
+      const blob = await response.blob();
+      const isVideo = media.tagName === "VIDEO";
+      const ext = isVideo ? "mp4" : (blob.type.includes("png") ? "png" : "jpg");
+      const filename = `estado-${Date.now()}.${ext}`;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) {
+      console.error("[CPS] No se pudo descargar el estado:", err);
+    }
+  }
+
+  function buildStatusDownloadButton(anchorBtn) {
+    // Se clona el botón nativo completo (en vez de armar uno desde cero)
+    // para heredar exactamente el mismo padding, tamaño y comportamiento
+    // hover — así no queda desalineado respecto a los demás íconos.
+    const btn = anchorBtn.cloneNode(true);
+    btn.removeAttribute("data-tab");
+    btn.removeAttribute("aria-expanded");
+    btn.removeAttribute("aria-haspopup");
+
+    const label = cpsT("downloadStatus", settings.lang);
+    btn.setAttribute("aria-label", label);
+    btn.title = label;
+
+    const svg = btn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("viewBox", "0 0 24 24");
+      svg.innerHTML = `<path fill="currentColor" d="M12 16.5 6.5 11l1.4-1.45L11 12.67V4h2v8.67l3.1-3.12L17.5 11 12 16.5ZM6 20a1.94 1.94 0 0 1-1.43-.57A1.94 1.94 0 0 1 4 18v-3h2v3h12v-3h2v3a1.94 1.94 0 0 1-.57 1.43A1.94 1.94 0 0 1 18 20H6Z"/>`;
+    }
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      downloadCurrentStatus();
+    });
+
+    return btn;
+  }
+
+  function injectStatusDownloadButton() {
+    const playBtn = findStatusPlayButton();
+    const menuBtn = findStatusMenuButton();
+    const anchorBtn = playBtn || menuBtn;
+    if (!anchorBtn) return;
+
+    const wrapper = anchorBtn.closest("span.html-span") || anchorBtn.parentElement;
+    if (!wrapper || wrapper._wpsDownloadInjected) return;
+    wrapper._wpsDownloadInjected = true;
+
+    const span = document.createElement("span");
+    span.className = wrapper.className || "";
+    span.appendChild(buildStatusDownloadButton(anchorBtn));
+
+    if (playBtn) {
+      // Junto a Reproducir/Pausar (estados de video)
+      wrapper.after(span);
+    } else {
+      // Sin botón de play (foto): se ubica antes del menú
+      wrapper.parentElement?.insertBefore(span, wrapper);
+    }
+  }
+
   // También observar cuando WhatsApp monta su app (SPA)
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
@@ -814,6 +937,10 @@
         if (statusDrawer) setupStatusPreview();
       }
     }
+    // El visor de estados se remonta cada vez que se abre uno nuevo —
+    // se revisa en cada tanda de mutaciones (barato, y el propio flag
+    // `_wpsDownloadInjected` evita duplicados dentro de un mismo visor).
+    injectStatusDownloadButton();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 

@@ -33,6 +33,7 @@ const CPS_I18N = {
     rtl: false,
     statusPreviewCount: "states · showing 1st",
     statusPreviewOnly: "Preview",
+    downloadStatus: "Download status",
   },
   es: {
     panelTooltipPrivacyOn: "Desactivar privacidad (Ctrl+Shift+H)",
@@ -65,6 +66,7 @@ const CPS_I18N = {
     rtl: false,
     statusPreviewCount: "estados · Viendo el primero",
     statusPreviewOnly: "Vista previa",
+    downloadStatus: "Descargar estado",
   },
   de: {
     panelTooltipPrivacyOn: "Datenschutz deaktivieren (Ctrl+Shift+H)",
@@ -97,6 +99,7 @@ const CPS_I18N = {
     rtl: false,
     statusPreviewCount: "Status · zeigt 1. an",
     statusPreviewOnly: "Vorschau",
+    downloadStatus: "Status herunterladen",
   },
   ru: {
     panelTooltipPrivacyOn: "Отключить конфиденциальность (Ctrl+Shift+H)",
@@ -129,6 +132,7 @@ const CPS_I18N = {
     rtl: false,
     statusPreviewCount: "состояния · показан 1-й",
     statusPreviewOnly: "Предпросмотр",
+    downloadStatus: "Скачать статус",
   },
   ar: {
     panelTooltipPrivacyOn: "تعطيل الخصوصية (Ctrl+Shift+H)",
@@ -161,6 +165,7 @@ const CPS_I18N = {
     rtl: true,
     statusPreviewCount: "الحالات · يعرض الأول",
     statusPreviewOnly: "المعاينة",
+    downloadStatus: "تنزيل الحالة",
   },
   zh: {
     panelTooltipPrivacyOn: "关闭隐私模式 (Ctrl+Shift+H)",
@@ -193,6 +198,7 @@ const CPS_I18N = {
     rtl: false,
     statusPreviewCount: "状态 · 显示第一个",
     statusPreviewOnly: "预览",
+    downloadStatus: "下载状态",
   },
 };
 

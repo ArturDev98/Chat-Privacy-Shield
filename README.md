@@ -30,6 +30,7 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 🔔 **Show unread badges** | Keep unread message counters visible even while the chat list is blurred |
 | 💬 **Blur active conversation** | Blur the open chat's messages (compose box stays usable) |
 | ⌨️ **Hide typed text on blur** | Blur what you're typing when the chat input loses focus |
+| 📥 **Donwload Status** | Donwload statuses (Images or videos) |
 
 ---
 
