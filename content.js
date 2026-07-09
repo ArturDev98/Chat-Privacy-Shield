@@ -807,13 +807,30 @@
     return findButtonByIconTitle((name) => name.startsWith("ic-play") || name.startsWith("ic-pause"));
   }
 
+  function isInsideChatListHeader(btn) {
+    // El header de la lista de chats (junto al botón "+") comparte el
+    // mismo ícono "ic-more-vert" en su propio menú de opciones. Se
+    // descarta buscando el marcador "new-chat-outline" (confirmado real,
+    // exclusivo de ese header) en un par de ancestros hacia arriba, en
+    // vez de adivinar clases o IDs generados por WhatsApp.
+    let el = btn;
+    for (let i = 0; i < 6 && el; i++) {
+      if (el.querySelector?.('[data-testid="new-chat-outline"]')) return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+
   function findButtonByIconTitle(matches) {
     const titles = document.querySelectorAll("svg title");
     for (const t of titles) {
-      if (matches(t.textContent || "")) {
-        const btn = t.closest("button");
-        if (btn) return btn;
-      }
+      if (!matches(t.textContent || "")) continue;
+      const btn = t.closest("button");
+      if (!btn) continue;
+      if (isInsideChatListHeader(btn)) continue;
+      const rect = btn.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      return btn;
     }
     return null;
   }
