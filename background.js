@@ -10,3 +10,16 @@ chrome.commands.onCommand.addListener(async (command) => {
     chrome.tabs.sendMessage(tab.id, { action: "toggle-panel" });
   }
 });
+
+// Al actualizar de versión, se deja una bandera pendiente en storage.
+// El content script la revisa la próxima vez que WhatsApp Web carga y
+// muestra el popup de "novedades" — no se hace aquí porque el service
+// worker no tiene acceso al DOM de la pestaña.
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "update") {
+    chrome.storage.local.set({
+      wps_pending_changelog: chrome.runtime.getManifest().version,
+    });
+  }
+});
+

@@ -381,3 +381,125 @@ body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"]:fo
 #cps-status-preview .cps-sp-noimg span {
   font-size: 28px;
 }
+
+/* ---- Popup de "novedades" al actualizar de versión ---- */
+#wps-changelog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: wps-changelog-fade-in 0.2s ease;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@keyframes wps-changelog-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#wps-changelog-card {
+  background: #111b21;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  width: min(380px, 90vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 22px 22px 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: wps-changelog-pop-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes wps-changelog-pop-in {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+#wps-changelog-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+#wps-changelog-badge {
+  background: #25d366;
+  color: #06140c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+#wps-changelog-header h2 {
+  flex: 1;
+  margin: 0;
+  color: #e9edef;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+#wps-changelog-version {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+}
+
+#wps-changelog-list {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#wps-changelog-list li {
+  color: rgba(233, 237, 239, 0.85);
+  font-size: 13.5px;
+  line-height: 1.45;
+  padding-left: 20px;
+  position: relative;
+}
+
+#wps-changelog-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #25d366;
+}
+
+#wps-changelog-overlay[style*="rtl"] #wps-changelog-list li {
+  padding-left: 0;
+  padding-right: 20px;
+}
+
+#wps-changelog-overlay[style*="rtl"] #wps-changelog-list li::before {
+  left: auto;
+  right: 0;
+}
+
+#wps-changelog-close {
+  width: 100%;
+  background: #25d366;
+  color: #06140c;
+  border: none;
+  border-radius: 10px;
+  padding: 11px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: filter 0.15s ease;
+}
+
+#wps-changelog-close:hover {
+  filter: brightness(1.08);
+}

@@ -779,7 +779,57 @@
         panel.classList.add("wps-panel-hidden");
         showRestoreHint();
       }
+
+      checkPendingChangelog();
     });
+  }
+
+  // ---- Popup de "novedades" al actualizar de versión ----
+  // Se muestra una sola vez por versión — background.js deja la bandera
+  // en storage cuando Chrome actualiza la extensión (chrome.runtime.
+  // onInstalled con reason "update"); acá solo se consume esa bandera.
+  function checkPendingChangelog() {
+    if (typeof chrome === "undefined" || !chrome.storage?.local) return;
+    chrome.storage.local.get("wps_pending_changelog", (data) => {
+      const version = data?.wps_pending_changelog;
+      if (!version) return;
+
+      // Se limpia la bandera de inmediato — si algo falla al mostrar el
+      // modal, es preferible perderse el aviso a mostrarlo en bucle.
+      chrome.storage.local.remove("wps_pending_changelog");
+
+      const entry = typeof cpsGetChangelog === "function"
+        ? cpsGetChangelog(version, settings.lang)
+        : null;
+      if (entry) showChangelogModal(version, entry);
+    });
+  }
+
+  function showChangelogModal(version, entry) {
+    const overlay = document.createElement("div");
+    overlay.id = "wps-changelog-overlay";
+    overlay.style.direction = cpsIsRTL(settings.lang) ? "rtl" : "ltr";
+
+    const itemsHtml = entry.items.map((item) => `<li>${item}</li>`).join("");
+
+    overlay.innerHTML = `
+      <div id="wps-changelog-card">
+        <div id="wps-changelog-header">
+          <span id="wps-changelog-badge">CPS</span>
+          <h2>${entry.title}</h2>
+          <span id="wps-changelog-version">v${version}</span>
+        </div>
+        <ul id="wps-changelog-list">${itemsHtml}</ul>
+        <button id="wps-changelog-close" type="button">${cpsT("changelogGotIt", settings.lang)}</button>
+      </div>
+    `;
+
+    const close = () => overlay.remove();
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+    document.body.appendChild(overlay);
+    overlay.querySelector("#wps-changelog-close").addEventListener("click", close);
   }
 
   // Esperar a que WhatsApp cargue el DOM
