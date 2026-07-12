@@ -68,6 +68,56 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "1.9.0": {
+    en: {
+      title: "What's new",
+      items: [
+        "New: auto-blur after 30 seconds of inactivity — stays blurred until you turn it off yourself",
+        "New: hide \"online\"/\"last seen\"/\"typing...\" in the chat header, without affecting the contact's name",
+        "Improved: downloading text-only Statuses is now supported too (rebuilt as an image), not just photos and videos",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Nuevo: auto-difuminado tras 30 segundos de inactividad — se queda difuminado hasta que lo apagues tú mismo",
+        "Nuevo: ocultar \"en línea\"/\"última vez\"/\"escribiendo...\" en el encabezado del chat, sin afectar el nombre del contacto",
+        "Mejorado: ahora también se pueden descargar los Estados de solo texto (se reconstruyen como imagen), no solo fotos y videos",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Neu: automatische Unschärfe nach 30 Sekunden Inaktivität — bleibt unscharf, bis du sie selbst ausschaltest",
+        "Neu: \"online\"/\"zuletzt online\"/\"schreibt...\" im Chat-Header ausblenden, ohne den Namen des Kontakts zu beeinflussen",
+        "Verbessert: reine Text-Status-Updates können jetzt ebenfalls heruntergeladen werden (als Bild rekonstruiert), nicht nur Fotos und Videos",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Новое: автоматическое размытие через 30 секунд бездействия — остаётся размытым, пока вы не выключите его сами",
+        "Новое: скрытие \"в сети\"/\"был(а) в сети\"/\"печатает...\" в шапке чата, без влияния на имя контакта",
+        "Улучшено: теперь можно скачивать и текстовые статусы (собираются как изображение), а не только фото и видео",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "جديد: تمويه تلقائي بعد 30 ثانية من عدم النشاط — يبقى ممويهًا حتى تقوم بإيقافه بنفسك",
+        "جديد: إخفاء \"متصل الآن\"/\"آخر ظهور\"/\"يكتب الآن...\" في رأس الدردشة، دون التأثير على اسم جهة الاتصال",
+        "تحسين: أصبح بالإمكان الآن تنزيل الحالات النصية أيضًا (يُعاد بناؤها كصورة)، وليس فقط الصور ومقاطع الفيديو",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "新功能：闲置 30 秒后自动模糊——会一直保持模糊，直到你自己关闭",
+        "新功能：在聊天头部隐藏「在线」/「最后上线」/「正在输入...」，且不影响联系人姓名的显示",
+        "改进：现在纯文字状态也支持下载了（会重新生成为图片），不再局限于照片和视频",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {

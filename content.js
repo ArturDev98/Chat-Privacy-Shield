@@ -18,6 +18,8 @@
     showBadges: false,
     blurMain: false,
     hideTypedText: false,
+    autoBlurEnabled: false,
+    hideChatSubtitle: false,
     lang: "en",
   };
 
@@ -58,6 +60,7 @@
     body.classList.toggle("wps-show-badges", settings.showBadges);
     body.classList.toggle("wps-blur-main", settings.blurMain);
     body.classList.toggle("wps-hide-typed", settings.hideTypedText);
+    body.classList.toggle("wps-hide-subtitle", settings.hideChatSubtitle);
     // Si se desactiva hover reveal, limpiar items revelados que queden
     if (!settings.hoverReveal) {
       document.querySelectorAll(".wps-revealed").forEach(el => el.classList.remove("wps-revealed"));
@@ -73,6 +76,7 @@
 
     updateBadgeOverlays();
     updatePanelUI();
+    scheduleAutoBlur();
   }
 
   // ---- Hover reveal: por item individual en la lista de chats ----
@@ -235,6 +239,20 @@
         </svg>
       </button>
 
+      <!-- Auto-difuminar por inactividad -->
+      <button class="wps-btn" id="wps-auto-blur" data-tip="${cpsT('panelTooltipAutoBlur', settings.lang)}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/>
+        </svg>
+      </button>
+
+      <!-- Ocultar "en línea"/"última vez"/"escribiendo..." -->
+      <button class="wps-btn" id="wps-hide-subtitle" data-tip="${cpsT('panelTooltipHideSubtitle', settings.lang)}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="M12 12h4M8 12h.01"/>
+        </svg>
+      </button>
+
       <div class="wps-divider"></div>
 
       <!-- Idioma -->
@@ -299,6 +317,18 @@
       saveSettings();
     });
 
+    document.getElementById("wps-auto-blur").addEventListener("click", () => {
+      settings.autoBlurEnabled = !settings.autoBlurEnabled;
+      applyState();
+      saveSettings();
+    });
+
+    document.getElementById("wps-hide-subtitle").addEventListener("click", () => {
+      settings.hideChatSubtitle = !settings.hideChatSubtitle;
+      applyState();
+      saveSettings();
+    });
+
     document.getElementById("wps-pin").addEventListener("click", () => {
       settings.panelVisible = false;
       panel.classList.add("wps-panel-hidden");
@@ -327,6 +357,8 @@
     const badgesBtn = document.getElementById("wps-badges");
     const blurMainBtn = document.getElementById("wps-blur-main");
     const hideTypedBtn = document.getElementById("wps-hide-typed");
+    const autoBlurBtn = document.getElementById("wps-auto-blur");
+    const hideSubtitleBtn = document.getElementById("wps-hide-subtitle");
     const langBtn = document.getElementById("wps-lang");
     const pinBtn = document.getElementById("wps-pin");
     const slider = document.getElementById("wps-blur-slider");
@@ -339,6 +371,8 @@
     badgesBtn?.classList.toggle("active", settings.showBadges);
     blurMainBtn?.classList.toggle("active", settings.blurMain);
     hideTypedBtn?.classList.toggle("active", settings.hideTypedText);
+    autoBlurBtn?.classList.toggle("active", settings.autoBlurEnabled);
+    hideSubtitleBtn?.classList.toggle("active", settings.hideChatSubtitle);
 
     if (slider) slider.value = settings.blurLevel;
     sliderWrap?.classList.toggle("visible", settings.privacyActive);
@@ -353,6 +387,8 @@
     badgesBtn?.setAttribute("data-tip", cpsT("panelTooltipBadges", settings.lang));
     blurMainBtn?.setAttribute("data-tip", cpsT("panelTooltipBlurMain", settings.lang));
     hideTypedBtn?.setAttribute("data-tip", cpsT("panelTooltipHideTyped", settings.lang));
+    autoBlurBtn?.setAttribute("data-tip", cpsT("panelTooltipAutoBlur", settings.lang));
+    hideSubtitleBtn?.setAttribute("data-tip", cpsT("panelTooltipHideSubtitle", settings.lang));
     pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
     if (langBtn) {
       langBtn.textContent = settings.lang.toUpperCase();
@@ -600,6 +636,30 @@
     const input = e.target.closest?.(COMPOSE_INPUT_SELECTOR);
     if (input) input.classList.remove("wps-input-blurred");
   }, true);
+
+  // ---- Auto-difuminar por inactividad ----
+  // Si no hay actividad (mouse/teclado/scroll/clic) durante el tiempo
+  // configurado, se activa la privacidad sola. A propósito NO se apaga
+  // automáticamente al volver la actividad — queda difuminado hasta que
+  // se apague manualmente desde el panel, para no revelar nada de golpe
+  // apenas alguien vuelve a tocar el mouse.
+  const AUTO_BLUR_DELAY_MS = 30000;
+  let autoBlurTimer = null;
+
+  function scheduleAutoBlur() {
+    clearTimeout(autoBlurTimer);
+    if (!settings.autoBlurEnabled || settings.privacyActive) return;
+    autoBlurTimer = setTimeout(() => {
+      if (!settings.autoBlurEnabled || settings.privacyActive) return;
+      settings.privacyActive = true;
+      applyState();
+      saveSettings();
+    }, AUTO_BLUR_DELAY_MS);
+  }
+
+  ["mousemove", "keydown", "mousedown", "wheel", "touchstart"].forEach((evt) => {
+    document.addEventListener(evt, scheduleAutoBlur, { passive: true });
+  });
 
   // ---- Hover sobre la conversación activa (#main) ----
   // Delegado en `document` en vez de atado al nodo #main puntual: WhatsApp
@@ -904,28 +964,116 @@
     return null;
   }
 
-  async function downloadCurrentStatus() {
-    const media = getActiveStatusMedia();
-    if (!media) return;
+  function findActiveTextStatus() {
+    // Los estados de texto no tienen foto/video — su contenido vive en
+    // este contenedor (confirmado por inspección) en vez de un <img>/<video>.
+    const candidates = document.querySelectorAll('[data-testid="status-text"]');
+    for (const el of candidates) {
+      const style = window.getComputedStyle(el);
+      if (style.visibility === "hidden" || style.display === "none") continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 100 && rect.height > 40) return el;
+    }
+    return null;
+  }
 
-    try {
-      const response = await fetch(media.src);
-      const blob = await response.blob();
-      const isVideo = media.tagName === "VIDEO";
-      const ext = isVideo ? "mp4" : (blob.type.includes("png") ? "png" : "jpg");
-      const filename = `estado-${Date.now()}.${ext}`;
+  function findStatusBackgroundColor(el) {
+    // Sube por los ancestros buscando el primer color de fondo sólido
+    // real — el propio contenedor del texto suele ser transparente, el
+    // color/gradiente vive en algún ancestro (la "tarjeta" del estado).
+    let node = el;
+    for (let i = 0; i < 8 && node; i++) {
+      const bg = window.getComputedStyle(node).backgroundColor;
+      if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") return bg;
+      node = node.parentElement;
+    }
+    return "#075E54"; // verde WhatsApp como respaldo si no se encuentra nada
+  }
 
+  function downloadTextStatusAsImage(textEl) {
+    // No hay imagen real que descargar — se reconstruye el estado como
+    // una imagen (fondo + texto centrado) para poder guardarlo igual.
+    const bgColor = findStatusBackgroundColor(textEl);
+    const text = (textEl.textContent || "").trim();
+    if (!text) return;
+
+    const width = 720;
+    const height = 1280;
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 42px system-ui, -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    // Ajuste de línea simple por ancho disponible
+    const maxWidth = width - 100;
+    const words = text.split(" ");
+    const lines = [];
+    let current = "";
+    words.forEach((word) => {
+      const test = current ? `${current} ${word}` : word;
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = test;
+      }
+    });
+    if (current) lines.push(current);
+
+    const lineHeight = 56;
+    const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2;
+    lines.forEach((line, i) => {
+      ctx.fillText(line, width / 2, startY + i * lineHeight);
+    });
+
+    canvas.toBlob((blob) => {
+      if (!blob) return;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      a.download = `estado-${Date.now()}.png`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 5000);
-    } catch (err) {
-      console.error("[CPS] No se pudo descargar el estado:", err);
+    }, "image/png");
+  }
+
+  async function downloadCurrentStatus() {
+    const media = getActiveStatusMedia();
+    if (media) {
+      try {
+        const response = await fetch(media.src);
+        const blob = await response.blob();
+        const isVideo = media.tagName === "VIDEO";
+        const ext = isVideo ? "mp4" : (blob.type.includes("png") ? "png" : "jpg");
+        const filename = `estado-${Date.now()}.${ext}`;
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      } catch (err) {
+        console.error("[CPS] No se pudo descargar el estado:", err);
+      }
+      return;
     }
+
+    // Sin foto/video visible: puede ser un estado de texto
+    const textStatus = findActiveTextStatus();
+    if (textStatus) downloadTextStatusAsImage(textStatus);
   }
 
   function buildStatusDownloadButton(anchorBtn) {
@@ -957,6 +1105,14 @@
   }
 
   function injectStatusDownloadButton() {
+    // Se exige que haya de verdad una foto/video/texto de estado visible
+    // en pantalla en este momento. Sin este chequeo, el botón terminaba
+    // colándose en cualquier otro lugar de WhatsApp que reutilice el
+    // mismo ícono "⋮" (lista de chats, panel de info de contacto, etc.) —
+    // excluir esos sitios uno por uno es un juego perdido, así que en vez
+    // de eso se confirma positivamente el contexto correcto.
+    if (!getActiveStatusMedia() && !findActiveTextStatus()) return;
+
     const playBtn = findStatusPlayButton();
     const menuBtn = findStatusMenuButton();
     const anchorBtn = playBtn || menuBtn;

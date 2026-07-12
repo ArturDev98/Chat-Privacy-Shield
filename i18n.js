@@ -35,6 +35,8 @@ const CPS_I18N = {
     statusPreviewOnly: "Preview",
     downloadStatus: "Download status",
     changelogGotIt: "Got it",
+    panelTooltipAutoBlur: "Auto-blur when idle (30s - Default)",
+    panelTooltipHideSubtitle: "Hide online/last seen",
   },
   es: {
     panelTooltipPrivacyOn: "Desactivar privacidad (Ctrl+Shift+H)",
@@ -69,8 +71,11 @@ const CPS_I18N = {
     statusPreviewOnly: "Vista previa",
     downloadStatus: "Descargar estado",
     changelogGotIt: "Entendido",
+    panelTooltipAutoBlur: "Auto-difuminar por inactividad (30s - Por defecto)",
+    panelTooltipHideSubtitle: "Ocultar en línea / última vez",
   },
   de: {
+    panelTooltipHideSubtitle: "Online/zuletzt online ausblenden",
     panelTooltipPrivacyOn: "Datenschutz deaktivieren (Ctrl+Shift+H)",
     panelTooltipPrivacyOff: "Datenschutz aktivieren (Ctrl+Shift+H)",
     panelTooltipPhotos: "Fotos verbergen",
@@ -103,6 +108,7 @@ const CPS_I18N = {
     statusPreviewOnly: "Vorschau",
     downloadStatus: "Status herunterladen",
     changelogGotIt: "Verstanden",
+    panelTooltipAutoBlur: "Bei Inaktivität automatisch unscharf stellen (30s - Standard)",
   },
   ru: {
     panelTooltipPrivacyOn: "Отключить конфиденциальность (Ctrl+Shift+H)",
@@ -137,6 +143,8 @@ const CPS_I18N = {
     statusPreviewOnly: "Предпросмотр",
     downloadStatus: "Скачать статус",
     changelogGotIt: "Понятно",
+    panelTooltipAutoBlur: "Автоматическое размытие при бездействии (30s - По умолчанию)",
+    panelTooltipHideSubtitle: "Скрыть «в сети»/последнее посещение",
   },
   ar: {
     panelTooltipPrivacyOn: "تعطيل الخصوصية (Ctrl+Shift+H)",
@@ -171,6 +179,8 @@ const CPS_I18N = {
     statusPreviewOnly: "المعاينة",
     downloadStatus: "تنزيل الحالة",
     changelogGotIt: "حسنًا",
+    panelTooltipAutoBlur: "التمويه التلقائي عند عدم النشاط (30s - الافتراضي)",
+    panelTooltipHideSubtitle: "إخفاء متصل الآن / آخر ظهور",
   },
   zh: {
     panelTooltipPrivacyOn: "关闭隐私模式 (Ctrl+Shift+H)",
@@ -205,6 +215,8 @@ const CPS_I18N = {
     statusPreviewOnly: "预览",
     downloadStatus: "下载状态",
     changelogGotIt: "知道了",
+    panelTooltipAutoBlur: "闲置时自动模糊 (30s - 默认)",
+    panelTooltipHideSubtitle: "隐藏「在线」/最后上线时间",
   },
 };
 

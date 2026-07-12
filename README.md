@@ -31,6 +31,8 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 💬 **Blur active conversation** | Blur the open chat's messages (compose box stays usable) |
 | ⌨️ **Hide typed text on blur** | Blur what you're typing when the chat input loses focus |
 | 📥 **Donwload Status** | Donwload statuses (Images or videos) |
+| 👁️ **Auto-Blur** | Auto-blur due to inactivity |
+| 🥷🏽 **Hidden online/last seen** | Hide online status, last seen, or typing status |
 
 ---
 

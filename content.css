@@ -50,8 +50,10 @@ body.wps-active.wps-hover-reveal.wps-main-hovered img[src*="data:"] {
 }
 
 /* ---- Fotos de perfil + imágenes compartidas dentro del chat ---- */
-body.wps-active.wps-hide-avatars img[src*="blob:"],
-body.wps-active.wps-hide-avatars img[src*="data:"],
+/* Importante: SIN acotar a un contenedor, `img[src*="blob:"]` también
+   atrapaba las fotos del visor de Estados (usan el mismo mecanismo blob:
+   para su contenido) — por eso se restringe a #main (chat abierto) y a
+   selectores de clase/testid de avatar, que no alcanzan el visor. */
 body.wps-active.wps-hide-avatars span[data-icon="default-user"],
 body.wps-active.wps-hide-avatars div[class*="avatar"] img,
 body.wps-active.wps-hide-avatars [data-testid*="photo"] img,
@@ -141,6 +143,22 @@ body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"].wp
 
 body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"]:focus {
   filter: blur(0px) !important;
+}
+
+/* ---- Ocultar "en línea" / "última vez" / "escribiendo..." ---- */
+/* Selector confirmado por inspección: el contenedor data-testid=
+   "chat-subtitle" es exclusivo de esa línea, distinto de
+   "conversation-info-header-chat-title" (el nombre), así que el nombre
+   nunca se ve afectado por este toggle. */
+body.wps-active.wps-hide-subtitle #main [data-testid="chat-subtitle"] {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+body.wps-active.wps-hide-subtitle.wps-main-hovered #main [data-testid="chat-subtitle"] {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
 }
 
 /* ---- Panel flotante UI ---- */
