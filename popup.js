@@ -12,6 +12,8 @@ const defaults = {
   showBadges: false,
   blurMain: false,
   hideTypedText: false,
+  autoBlurEnabled: false,
+  hideChatSubtitle: false,
   lang: "en",
 };
 
@@ -57,6 +59,8 @@ function updateUI() {
   document.getElementById("toggle-badges").checked = settings.showBadges;
   document.getElementById("toggle-blur-main").checked = settings.blurMain;
   document.getElementById("toggle-hide-typed").checked = settings.hideTypedText;
+  document.getElementById("toggle-auto-blur").checked = settings.autoBlurEnabled;
+  document.getElementById("toggle-hide-subtitle").checked = settings.hideChatSubtitle;
   applyTranslations();
 }
 
@@ -106,6 +110,16 @@ document.getElementById("toggle-blur-main").addEventListener("change", (e) => {
 
 document.getElementById("toggle-hide-typed").addEventListener("change", (e) => {
   settings.hideTypedText = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-auto-blur").addEventListener("change", (e) => {
+  settings.autoBlurEnabled = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-hide-subtitle").addEventListener("change", (e) => {
+  settings.hideChatSubtitle = e.target.checked;
   saveAndSync();
 });
 
