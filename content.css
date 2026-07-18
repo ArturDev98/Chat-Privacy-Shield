@@ -64,13 +64,19 @@ body.wps-active.wps-hide-avatars #main img[src*="data:"] {
   transition: filter 0.25s ease;
 }
 
-/* Cuando el mouse está sobre el panel lateral, quitar blur de fotos y nombres */
-body.wps-active.wps-hover-reveal.wps-pane-hovered img[src*="blob:"],
-body.wps-active.wps-hover-reveal.wps-pane-hovered img[src*="data:"],
-body.wps-active.wps-hover-reveal.wps-pane-hovered span[data-icon="default-user"],
-body.wps-active.wps-hover-reveal.wps-pane-hovered div[class*="avatar"] img,
-body.wps-active.wps-hover-reveal.wps-pane-hovered [data-testid*="photo"] img,
-body.wps-active.wps-hover-reveal.wps-pane-hovered [data-testid*="avatar"] img {
+/* Cuando el item está revelado (hover), quitar blur de fotos y nombres.
+   Importante: aunque el item padre ya pierda su blur al revelarse, la
+   foto y el nombre tienen SU PROPIO filter aplicado directamente (más
+   abajo) — el filtro no se hereda, así que sin esta regla se quedan
+   blureados aunque el resto del item ya se vea nítido. Se usa la clase
+   .wps-revealed (la que realmente se activa por hover, item por item) en
+   vez de wps-pane-hovered, que nunca llega a activarse. */
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed img[src*="blob:"],
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed img[src*="data:"],
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed span[data-icon="default-user"],
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed div[class*="avatar"] img,
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed [data-testid*="photo"] img,
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed [data-testid*="avatar"] img {
   filter: blur(0px) !important;
 }
 
@@ -83,10 +89,12 @@ body.wps-active.wps-hide-names span[dir="auto"][class*="x1iyjqo2"] {
   transition: filter 0.25s ease;
 }
 
-/* Quitar blur de nombres al hacer hover sobre el panel */
-body.wps-active.wps-hover-reveal.wps-pane-hovered span[class*="ggj6brxn"],
-body.wps-active.wps-hover-reveal.wps-pane-hovered div[class*="_11JPr"] span,
-body.wps-active.wps-hover-reveal.wps-pane-hovered span[dir="auto"][class*="x1iyjqo2"] {
+/* Quitar blur del nombre cuando el item está revelado (mismo motivo que
+   arriba: el nombre tiene su propio filter, no alcanza con desblurear
+   el item padre) */
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed span[class*="ggj6brxn"],
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed div[class*="_11JPr"] span,
+body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed span[dir="auto"][class*="x1iyjqo2"] {
   filter: blur(0px) !important;
 }
 
@@ -141,10 +149,6 @@ body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"].wp
   transition: filter 0.2s ease;
 }
 
-body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"]:focus {
-  filter: blur(0px) !important;
-}
-
 /* ---- Ocultar "en línea" / "última vez" / "escribiendo..." ---- */
 /* Selector confirmado por inspección: el contenedor data-testid=
    "chat-subtitle" es exclusivo de esa línea, distinto de
@@ -156,9 +160,19 @@ body.wps-active.wps-hide-subtitle #main [data-testid="chat-subtitle"] {
   transition: filter var(--wps-transition), opacity var(--wps-transition);
 }
 
-body.wps-active.wps-hide-subtitle.wps-main-hovered #main [data-testid="chat-subtitle"] {
+body.wps-active.wps-hide-subtitle.wps-header-hovered #main [data-testid="chat-subtitle"] {
   filter: blur(0px) !important;
   opacity: 1 !important;
+}
+
+/* ---- Revelar el nombre del contacto en el encabezado del chat abierto ---- */
+/* El nombre ahí (data-testid="conversation-info-header-chat-title") ya
+   queda difuminado por "ocultar nombres" (matchea uno de sus selectores
+   genéricos), pero antes no tenía forma de revelarse — el revelado por
+   hover solo cubría los items de la lista. Se engancha al mismo mecanismo
+   que ya usan "chat-subtitle"/blur-main: hover sobre #main. */
+body.wps-active.wps-hover-reveal.wps-header-hovered #main [data-testid="conversation-info-header-chat-title"] {
+  filter: blur(0px) !important;
 }
 
 /* ---- Panel flotante UI ---- */
@@ -178,7 +192,7 @@ body.wps-active.wps-hide-subtitle.wps-main-hovered #main [data-testid="chat-subt
   border-radius: 40px;
   padding: 6px 8px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease, filter 0.3s ease;
   font-family: system-ui, -apple-system, sans-serif;
   user-select: none;
 }

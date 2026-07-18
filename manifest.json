@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Chat Privacy Shield",
   "short_name": "CPS",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Blur and hide chats, names, and shared images for visual privacy in shared spaces. Not affiliated with WhatsApp or Meta.",
   "permissions": [
     "storage",

@@ -268,6 +268,29 @@
 
     document.body.appendChild(panel);
 
+    // ---- Auto-cerrar al sacar el cursor (como si se hubiera dado en la X) ----
+    // A diferencia del botón de pin, esto NO se guarda en storage — es un
+    // estado de la sesión actual. Si se guardara, el panel empezaría
+    // oculto en la próxima carga de WhatsApp, que no es lo que se quiere:
+    // la idea es que deje de estorbar mientras no se usa, pero siga
+    // apareciendo normalmente la próxima vez que se abra la página.
+    // Un pequeño retraso evita que se cierre por sacar el cursor un
+    // instante sin querer entre un botón y otro.
+    let panelAutoHideTimer = null;
+
+    panel.addEventListener("mouseleave", () => {
+      clearTimeout(panelAutoHideTimer);
+      panelAutoHideTimer = setTimeout(() => {
+        if (panel.classList.contains("wps-panel-hidden")) return;
+        panel.classList.add("wps-panel-hidden");
+        showRestoreHint();
+      }, 400);
+    });
+
+    panel.addEventListener("mouseenter", () => {
+      clearTimeout(panelAutoHideTimer);
+    });
+
     // ---- Eventos ----
     document.getElementById("wps-toggle").addEventListener("click", () => {
       togglePrivacy();
@@ -637,6 +660,26 @@
     if (input) input.classList.remove("wps-input-blurred");
   }, true);
 
+  // El input mantiene el foco hasta que se hace clic en otra parte, así
+  // que basar el difuminado solo en focusout obligaba a hacer clic para
+  // que se aplicara. Se agrega el mismo efecto al sacar el cursor del
+  // input, sin necesidad de perder el foco ni hacer clic.
+  document.addEventListener("mouseout", (e) => {
+    if (!settings.privacyActive || !settings.hideTypedText) return;
+    const input = e.target.closest?.(COMPOSE_INPUT_SELECTOR);
+    if (input) {
+      const related = e.relatedTarget;
+      if (!related || !input.contains(related)) {
+        input.classList.add("wps-input-blurred");
+      }
+    }
+  }, true);
+
+  document.addEventListener("mouseover", (e) => {
+    const input = e.target.closest?.(COMPOSE_INPUT_SELECTOR);
+    if (input) input.classList.remove("wps-input-blurred");
+  }, true);
+
   // ---- Auto-difuminar por inactividad ----
   // Si no hay actividad (mouse/teclado/scroll/clic) durante el tiempo
   // configurado, se activa la privacidad sola. A propósito NO se apaga
@@ -678,6 +721,27 @@
     const related = e.relatedTarget;
     if (!related || !main.contains(related)) {
       document.body.classList.remove("wps-main-hovered");
+    }
+  });
+
+  // ---- Hover específico sobre el bloque de info del encabezado ----
+  // (foto + nombre + "en línea"/"última vez") — a propósito NO se usa
+  // wps-main-hovered para esto: esa clase se activa con solo pasar el
+  // cursor por cualquier parte del chat (incluido el fondo/mensajes),
+  // revelando el nombre aunque el mouse ni siquiera esté cerca del
+  // encabezado. Acá se ancla puntualmente a ese bloque.
+  document.addEventListener("mouseover", (e) => {
+    if (e.target.closest?.('[data-testid="conversation-info-header"]')) {
+      document.body.classList.add("wps-header-hovered");
+    }
+  });
+
+  document.addEventListener("mouseout", (e) => {
+    const infoHeader = e.target.closest?.('[data-testid="conversation-info-header"]');
+    if (!infoHeader) return;
+    const related = e.relatedTarget;
+    if (!related || !infoHeader.contains(related)) {
+      document.body.classList.remove("wps-header-hovered");
     }
   });
 
@@ -956,6 +1020,11 @@
     const candidates = document.querySelectorAll('video, img[src^="blob:"]');
     for (const el of candidates) {
       if (!el.src) continue;
+      // Una foto o video de un MENSAJE dentro del chat abierto también usa
+      // blob: — sin excluir #main, un mensaje grande visible en pantalla
+      // se detectaba como si fuera contenido del visor de Estados (que es
+      // una vista totalmente aparte, nunca anidada dentro de #main).
+      if (el.closest("#main")) continue;
       const style = window.getComputedStyle(el);
       if (style.visibility === "hidden" || style.display === "none") continue;
       const rect = el.getBoundingClientRect();
@@ -969,6 +1038,7 @@
     // este contenedor (confirmado por inspección) en vez de un <img>/<video>.
     const candidates = document.querySelectorAll('[data-testid="status-text"]');
     for (const el of candidates) {
+      if (el.closest("#main")) continue;
       const style = window.getComputedStyle(el);
       if (style.visibility === "hidden" || style.display === "none") continue;
       const rect = el.getBoundingClientRect();

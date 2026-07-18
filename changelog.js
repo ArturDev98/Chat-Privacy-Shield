@@ -68,13 +68,16 @@ const CPS_CHANGELOG = {
       ],
     },
   },
-  "1.9.0": {
+  "1.9.1": {
     en: {
       title: "What's new",
       items: [
         "New: auto-blur after 30 seconds of inactivity — stays blurred until you turn it off yourself",
         "New: hide \"online\"/\"last seen\"/\"typing...\" in the chat header, without affecting the contact's name",
         "Improved: downloading text-only Statuses is now supported too (rebuilt as an image), not just photos and videos",
+        "Fixed: \"reveal on hover\" now also works for names and profile photos (chat list and open chat header)",
+        "New: the control panel now closes itself automatically when you move the cursor away — no need to click the X every time",
+        "Fixed: \"hide typed text\" now also triggers when you move the cursor away, not only when you click elsewhere",
       ],
     },
     es: {
@@ -83,6 +86,9 @@ const CPS_CHANGELOG = {
         "Nuevo: auto-difuminado tras 30 segundos de inactividad — se queda difuminado hasta que lo apagues tú mismo",
         "Nuevo: ocultar \"en línea\"/\"última vez\"/\"escribiendo...\" en el encabezado del chat, sin afectar el nombre del contacto",
         "Mejorado: ahora también se pueden descargar los Estados de solo texto (se reconstruyen como imagen), no solo fotos y videos",
+        "Corregido: \"revelar al pasar el cursor\" ahora también funciona para nombres y fotos de perfil (lista de chats y encabezado del chat abierto)",
+        "Nuevo: el panel de control se cierra solo al sacar el cursor — ya no hace falta darle a la X cada vez",
+        "Corregido: \"ocultar texto escrito\" ahora también se activa al sacar el cursor, no solo al hacer clic en otro lado",
       ],
     },
     de: {
@@ -91,6 +97,9 @@ const CPS_CHANGELOG = {
         "Neu: automatische Unschärfe nach 30 Sekunden Inaktivität — bleibt unscharf, bis du sie selbst ausschaltest",
         "Neu: \"online\"/\"zuletzt online\"/\"schreibt...\" im Chat-Header ausblenden, ohne den Namen des Kontakts zu beeinflussen",
         "Verbessert: reine Text-Status-Updates können jetzt ebenfalls heruntergeladen werden (als Bild rekonstruiert), nicht nur Fotos und Videos",
+        "Behoben: \"Bei Mauszeiger anzeigen\" funktioniert jetzt auch für Namen und Profilfotos (Chatliste und geöffneter Chat-Header)",
+        "Neu: Das Bedienfeld schließt sich jetzt automatisch, wenn du den Mauszeiger wegbewegst — kein Klick mehr auf das X nötig",
+        "Behoben: \"Geschriebenen Text ausblenden\" wird jetzt auch beim Wegbewegen des Mauszeigers ausgelöst, nicht nur bei Klick woanders",
       ],
     },
     ru: {
@@ -99,6 +108,9 @@ const CPS_CHANGELOG = {
         "Новое: автоматическое размытие через 30 секунд бездействия — остаётся размытым, пока вы не выключите его сами",
         "Новое: скрытие \"в сети\"/\"был(а) в сети\"/\"печатает...\" в шапке чата, без влияния на имя контакта",
         "Улучшено: теперь можно скачивать и текстовые статусы (собираются как изображение), а не только фото и видео",
+        "Исправлено: \"показывать при наведении\" теперь работает и для имён, и для фото профиля (список чатов и шапка открытого чата)",
+        "Новое: панель управления теперь закрывается автоматически при отведении курсора — больше не нужно каждый раз нажимать X",
+        "Исправлено: \"скрывать набираемый текст\" теперь срабатывает и при отведении курсора, а не только при клике в другом месте",
       ],
     },
     ar: {
@@ -107,6 +119,9 @@ const CPS_CHANGELOG = {
         "جديد: تمويه تلقائي بعد 30 ثانية من عدم النشاط — يبقى ممويهًا حتى تقوم بإيقافه بنفسك",
         "جديد: إخفاء \"متصل الآن\"/\"آخر ظهور\"/\"يكتب الآن...\" في رأس الدردشة، دون التأثير على اسم جهة الاتصال",
         "تحسين: أصبح بالإمكان الآن تنزيل الحالات النصية أيضًا (يُعاد بناؤها كصورة)، وليس فقط الصور ومقاطع الفيديو",
+        "إصلاح: \"الكشف عند التحويم\" يعمل الآن أيضًا مع الأسماء وصور الملف الشخصي (قائمة الدردشات ورأس الدردشة المفتوحة)",
+        "جديد: لوحة التحكم تُغلق الآن تلقائيًا عند إبعاد المؤشر — لم تعد بحاجة للنقر على X في كل مرة",
+        "إصلاح: \"إخفاء النص المكتوب\" يُفعَّل الآن أيضًا عند إبعاد المؤشر، وليس فقط عند النقر في مكان آخر",
       ],
     },
     zh: {
@@ -115,6 +130,9 @@ const CPS_CHANGELOG = {
         "新功能：闲置 30 秒后自动模糊——会一直保持模糊，直到你自己关闭",
         "新功能：在聊天头部隐藏「在线」/「最后上线」/「正在输入...」，且不影响联系人姓名的显示",
         "改进：现在纯文字状态也支持下载了（会重新生成为图片），不再局限于照片和视频",
+        "修复：「悬停时显示」现在也适用于姓名和头像（聊天列表和已打开聊天的头部）",
+        "新功能：现在移开光标后控制面板会自动关闭——不用每次都点 X 了",
+        "修复：「隐藏正在输入的文字」现在移开光标也会触发，不再只是点击别处才生效",
       ],
     },
   },
