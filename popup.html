@@ -224,6 +224,41 @@
       color: rgba(255,255,255,0.5);
     }
 
+    .support-section {
+      padding: 8px 18px 2px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .kofi-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      color: rgba(255,255,255,0.75);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    }
+
+    .kofi-btn:hover {
+      background: rgba(255,94,91,0.12);
+      border-color: rgba(255,94,91,0.4);
+      color: #ff8b89;
+    }
+
+    .kofi-btn:active {
+      transform: scale(0.97);
+    }
+
+    .kofi-icon {
+      font-size: 13px;
+    }
+
     .disclaimer {
       padding: 8px 18px 10px;
       display: flex;
@@ -424,6 +459,13 @@
       <span class="shortcut-label" data-i18n="showHidePanel">Show/hide panel</span>
       <div class="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>K</kbd></div>
     </div>
+  </div>
+
+  <div class="support-section">
+    <a href="https://ko-fi.com/arturdev98" target="_blank" class="kofi-btn">
+      <span class="kofi-icon">☕</span>
+      <span data-i18n="supportProject">Support this project</span>
+    </a>
   </div>
 
   <div class="disclaimer">

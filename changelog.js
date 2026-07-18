@@ -68,7 +68,7 @@ const CPS_CHANGELOG = {
       ],
     },
   },
-  "1.9.1": {
+  "1.10.0": {
     en: {
       title: "What's new",
       items: [
@@ -78,6 +78,7 @@ const CPS_CHANGELOG = {
         "Fixed: \"reveal on hover\" now also works for names and profile photos (chat list and open chat header)",
         "New: the control panel now closes itself automatically when you move the cursor away — no need to click the X every time",
         "Fixed: \"hide typed text\" now also triggers when you move the cursor away, not only when you click elsewhere",
+        "New: added a small \"Support this project\" button (Ko-fi) in the popup, for anyone who wants to help keep this going",
       ],
     },
     es: {
@@ -89,6 +90,7 @@ const CPS_CHANGELOG = {
         "Corregido: \"revelar al pasar el cursor\" ahora también funciona para nombres y fotos de perfil (lista de chats y encabezado del chat abierto)",
         "Nuevo: el panel de control se cierra solo al sacar el cursor — ya no hace falta darle a la X cada vez",
         "Corregido: \"ocultar texto escrito\" ahora también se activa al sacar el cursor, no solo al hacer clic en otro lado",
+        "Nuevo: se agregó un pequeño botón de \"Apoyar este proyecto\" (Ko-fi) en el popup, para quien quiera colaborar a que esto siga adelante",
       ],
     },
     de: {
@@ -100,6 +102,7 @@ const CPS_CHANGELOG = {
         "Behoben: \"Bei Mauszeiger anzeigen\" funktioniert jetzt auch für Namen und Profilfotos (Chatliste und geöffneter Chat-Header)",
         "Neu: Das Bedienfeld schließt sich jetzt automatisch, wenn du den Mauszeiger wegbewegst — kein Klick mehr auf das X nötig",
         "Behoben: \"Geschriebenen Text ausblenden\" wird jetzt auch beim Wegbewegen des Mauszeigers ausgelöst, nicht nur bei Klick woanders",
+        "Neu: ein kleiner \"Projekt unterstützen\"-Button (Ko-fi) im Popup für alle, die gerne beitragen möchten",
       ],
     },
     ru: {
@@ -111,6 +114,7 @@ const CPS_CHANGELOG = {
         "Исправлено: \"показывать при наведении\" теперь работает и для имён, и для фото профиля (список чатов и шапка открытого чата)",
         "Новое: панель управления теперь закрывается автоматически при отведении курсора — больше не нужно каждый раз нажимать X",
         "Исправлено: \"скрывать набираемый текст\" теперь срабатывает и при отведении курсора, а не только при клике в другом месте",
+        "Новое: в попапе появилась небольшая кнопка \"Поддержать проект\" (Ko-fi) для тех, кто хочет помочь развитию",
       ],
     },
     ar: {
@@ -122,6 +126,7 @@ const CPS_CHANGELOG = {
         "إصلاح: \"الكشف عند التحويم\" يعمل الآن أيضًا مع الأسماء وصور الملف الشخصي (قائمة الدردشات ورأس الدردشة المفتوحة)",
         "جديد: لوحة التحكم تُغلق الآن تلقائيًا عند إبعاد المؤشر — لم تعد بحاجة للنقر على X في كل مرة",
         "إصلاح: \"إخفاء النص المكتوب\" يُفعَّل الآن أيضًا عند إبعاد المؤشر، وليس فقط عند النقر في مكان آخر",
+        "جديد: تمت إضافة زر صغير \"دعم هذا المشروع\" (Ko-fi) في النافذة المنبثقة لمن يرغب في المساهمة",
       ],
     },
     zh: {
@@ -133,6 +138,7 @@ const CPS_CHANGELOG = {
         "修复：「悬停时显示」现在也适用于姓名和头像（聊天列表和已打开聊天的头部）",
         "新功能：现在移开光标后控制面板会自动关闭——不用每次都点 X 了",
         "修复：「隐藏正在输入的文字」现在移开光标也会触发，不再只是点击别处才生效",
+        "新功能：弹出窗口中新增了一个小小的「支持这个项目」（Ko-fi）按钮，欢迎愿意支持的用户",
       ],
     },
   },
