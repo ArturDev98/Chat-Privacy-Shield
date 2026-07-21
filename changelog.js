@@ -142,6 +142,50 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "1.10.1": {
+    en: {
+      title: "What's new",
+      items: [
+        "Fixed: revealing a long message on hover no longer cuts off text near WhatsApp's own reaction/options menu",
+        "Fixed: downloading a Status right when it opens sometimes produced an empty file — now retries automatically until the content is ready",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Corregido: al revelar un mensaje largo con el cursor, ya no se corta el texto cerca del menú de reacciones/opciones de WhatsApp",
+        "Corregido: descargar un Estado justo al abrirlo a veces generaba un archivo vacío — ahora reintenta automáticamente hasta que el contenido esté listo",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Behoben: beim Anzeigen einer langen Nachricht per Mauszeiger wird der Text nicht mehr in der Nähe des WhatsApp-Reaktions-/Optionsmenüs abgeschnitten",
+        "Behoben: das Herunterladen eines Status direkt beim Öffnen erzeugte manchmal eine leere Datei — es wird jetzt automatisch erneut versucht, bis der Inhalt bereit ist",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Исправлено: при наведении на длинное сообщение текст больше не обрезается рядом с меню реакций/опций WhatsApp",
+        "Исправлено: скачивание статуса сразу при открытии иногда создавало пустой файл — теперь система автоматически повторяет попытку, пока контент не будет готов",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "إصلاح: عند إظهار رسالة طويلة بالتحويم، لم يعد النص يُقطَع بالقرب من قائمة التفاعلات/الخيارات الخاصة بواتساب",
+        "إصلاح: كان تنزيل حالة فور فتحها ينتج أحيانًا ملفًا فارغًا — والآن تتم إعادة المحاولة تلقائيًا حتى يصبح المحتوى جاهزًا",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "修复：悬停显示长消息时，文字不再在 WhatsApp 自带的表情回应/选项菜单附近被截断",
+        "修复：刚打开状态就下载有时会得到空文件——现在会自动重试，直到内容准备就绪",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {

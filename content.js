@@ -749,22 +749,33 @@
   // Más privado que revelar toda la conversación: solo se des-difumina la
   // burbuja bajo el cursor. Delegado en `document` porque la lista de
   // mensajes se re-renderiza constantemente (mensajes nuevos, scroll, etc).
+  //
+  // El hover se detecta desde la FILA completa (.focusable-list-item —
+  // clase real y estable de WhatsApp, no de las generadas) en vez de solo
+  // el contenedor del mensaje (msg-container): esa fila incluye también
+  // la zona donde aparece el menú nativo de reacciones/opciones de
+  // WhatsApp, que queda fuera de los límites de msg-container. Sin esto,
+  // acercarse al mensaje desde ese lado volvía a difuminarlo antes de
+  // tiempo. El blur en sí se sigue aplicando solo sobre msg-container.
+  const MESSAGE_ROW_SELECTOR = ".focusable-list-item";
   const MESSAGE_SELECTOR = '[data-testid="msg-container"]';
 
   document.addEventListener("mouseover", (e) => {
     if (!settings.privacyActive || !settings.blurMain) return;
-    const msg = e.target.closest?.(MESSAGE_SELECTOR);
+    const row = e.target.closest?.(MESSAGE_ROW_SELECTOR);
+    if (!row) return;
+    const msg = row.querySelector(MESSAGE_SELECTOR);
     if (msg) msg.classList.add("wps-msg-revealed");
   });
 
   document.addEventListener("mouseout", (e) => {
     if (!settings.privacyActive || !settings.blurMain) return;
-    const msg = e.target.closest?.(MESSAGE_SELECTOR);
-    if (msg) {
-      const related = e.relatedTarget;
-      if (!related || !msg.contains(related)) {
-        msg.classList.remove("wps-msg-revealed");
-      }
+    const row = e.target.closest?.(MESSAGE_ROW_SELECTOR);
+    if (!row) return;
+    const related = e.relatedTarget;
+    if (!related || !row.contains(related)) {
+      const msg = row.querySelector(MESSAGE_SELECTOR);
+      if (msg) msg.classList.remove("wps-msg-revealed");
     }
   });
 
@@ -1117,12 +1128,30 @@
     }, "image/png");
   }
 
+  // Reintenta el fetch si el blob llega vacío — al descargar justo cuando
+  // se abre un estado, a veces el blob: todavía no terminó de estar listo
+  // en el navegador y el primer intento trae 0 bytes.
+  async function fetchBlobWithRetry(url, maxRetries = 4, delayMs = 350) {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      if (blob.size > 0) return blob;
+      if (attempt < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+    return null;
+  }
+
   async function downloadCurrentStatus() {
     const media = getActiveStatusMedia();
     if (media) {
       try {
-        const response = await fetch(media.src);
-        const blob = await response.blob();
+        const blob = await fetchBlobWithRetry(media.src);
+        if (!blob) {
+          console.error("[CPS] El estado llegó vacío tras varios intentos — puede que el contenido aún no terminara de cargar.");
+          return;
+        }
         const isVideo = media.tagName === "VIDEO";
         const ext = isVideo ? "mp4" : (blob.type.includes("png") ? "png" : "jpg");
         const filename = `estado-${Date.now()}.${ext}`;
