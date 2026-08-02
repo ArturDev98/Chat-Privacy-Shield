@@ -186,6 +186,44 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "1.11.0": {
+    en: {
+      title: "What's new",
+      items: [
+        "New: export and import your settings as a backup file, from the extension popup",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Nuevo: exporta e importa tu configuración como archivo de respaldo, desde el popup de la extensión",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Neu: Einstellungen als Sicherungsdatei exportieren und importieren, direkt im Erweiterungs-Popup",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Новое: экспорт и импорт настроек в виде резервного файла прямо из всплывающего окна расширения",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "جديد: تصدير واستيراد إعداداتك كملف نسخة احتياطية، من النافذة المنبثقة للإضافة",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "新功能：可以在扩展程序弹出窗口中导出和导入设置备份文件",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {

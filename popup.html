@@ -230,6 +230,64 @@
       justify-content: center;
     }
 
+    .backup-section {
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .backup-title {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 8px;
+    }
+
+    .backup-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .backup-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.75);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+    }
+
+    .backup-btn:hover {
+      background: rgba(37,211,102,0.12);
+      border-color: rgba(37,211,102,0.4);
+      color: #25d366;
+    }
+
+    .backup-btn:active {
+      transform: scale(0.97);
+    }
+
+    .backup-status {
+      margin-top: 6px;
+      font-size: 10px;
+      color: rgba(37,211,102,0.85);
+      min-height: 12px;
+      text-align: center;
+    }
+
+    .backup-status.error {
+      color: rgba(255,94,91,0.9);
+    }
+
     .kofi-btn {
       display: inline-flex;
       align-items: center;
@@ -459,6 +517,22 @@
       <span class="shortcut-label" data-i18n="showHidePanel">Show/hide panel</span>
       <div class="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>K</kbd></div>
     </div>
+  </div>
+
+  <div class="backup-section">
+    <div class="backup-title" data-i18n="backupTitle">Backup settings</div>
+    <div class="backup-buttons">
+      <button type="button" id="export-settings-btn" class="backup-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-i18n="exportSettings">Export</span>
+      </button>
+      <button type="button" id="import-settings-btn" class="backup-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span data-i18n="importSettings">Import</span>
+      </button>
+      <input type="file" id="import-file-input" accept="application/json,.json" style="display:none;">
+    </div>
+    <div id="backup-status" class="backup-status"></div>
   </div>
 
   <div class="support-section">

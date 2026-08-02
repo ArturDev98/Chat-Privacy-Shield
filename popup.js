@@ -128,3 +128,90 @@ document.getElementById("lang-toggle").addEventListener("click", () => {
   updateUI();
   saveAndSync();
 });
+
+// ---- Exportar / Importar configuración ----
+function showBackupStatus(text, isError) {
+  const el = document.getElementById("backup-status");
+  if (!el) return;
+  el.textContent = text;
+  el.classList.toggle("error", !!isError);
+  clearTimeout(showBackupStatus._timer);
+  showBackupStatus._timer = setTimeout(() => {
+    el.textContent = "";
+  }, 3000);
+}
+
+document.getElementById("export-settings-btn").addEventListener("click", () => {
+  const exportPayload = {
+    app: "chat-privacy-shield",
+    exportedAt: new Date().toISOString(),
+    settings,
+  };
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `cps-settings-${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+  showBackupStatus(cpsT("exportSuccess", settings.lang), false);
+});
+
+document.getElementById("import-settings-btn").addEventListener("click", () => {
+  document.getElementById("import-file-input").click();
+});
+
+document.getElementById("import-file-input").addEventListener("change", (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  // Un archivo de configuración real pesa unos pocos KB — se rechaza de
+  // entrada cualquier cosa fuera de rango, ANTES de leerlo. Sin este
+  // chequeo, un archivo gigante (ej. un log de varios GB subido por
+  // error) se intentaba leer completo en memoria con readAsText() y
+  // trababa el popup en vez de mostrar el error de formato inválido.
+  const MAX_IMPORT_SIZE_BYTES = 1 * 1024 * 1024; // 1MB, generoso de sobra
+  if (file.size > MAX_IMPORT_SIZE_BYTES || file.size === 0) {
+    showBackupStatus(cpsT("importError", settings.lang), true);
+    e.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onerror = () => {
+    showBackupStatus(cpsT("importError", settings.lang), true);
+    e.target.value = "";
+  };
+
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      // Acepta tanto el archivo exportado (con envoltura {app, settings})
+      // como un objeto plano de settings directamente.
+      const imported = parsed && typeof parsed === "object" && parsed.settings
+        ? parsed.settings
+        : parsed;
+
+      const validKeys = Object.keys(defaults);
+      const looksValid = imported
+        && typeof imported === "object"
+        && validKeys.some((key) => Object.prototype.hasOwnProperty.call(imported, key));
+
+      if (!looksValid) throw new Error("El archivo no tiene el formato esperado");
+
+      settings = { ...defaults, ...imported };
+      updateUI();
+      saveAndSync();
+      showBackupStatus(cpsT("importSuccess", settings.lang), false);
+    } catch (err) {
+      showBackupStatus(cpsT("importError", settings.lang), true);
+    } finally {
+      e.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+});
+
