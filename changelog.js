@@ -224,6 +224,82 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "1.11.2": {
+    en: {
+      title: "What's new",
+      items: [
+        "Fixed: the Status download button no longer appears when viewing a photo/video attachment inside a chat — WhatsApp already has its own download button there",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Corregido: el botón de descargar estado ya no aparece al ver una foto/video adjunto dentro de un chat — ahí WhatsApp ya tiene su propio botón de descarga",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Behoben: Der Status-Download-Button erscheint nicht mehr beim Anzeigen eines Foto-/Video-Anhangs in einem Chat — dort hat WhatsApp bereits einen eigenen Download-Button",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Исправлено: кнопка скачивания статуса больше не появляется при просмотре фото/видео вложения в чате — там у WhatsApp уже есть своя кнопка загрузки",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "إصلاح: لم يعد زر تنزيل الحالة يظهر عند عرض مرفق صورة/فيديو داخل محادثة — فهناك يمتلك واتساب زر تنزيل خاصًا به بالفعل",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "修复：在聊天中查看照片/视频附件时不再显示状态下载按钮——那里 WhatsApp 本身已经有自己的下载按钮",
+      ],
+    },
+  },
+  "1.12.0": {
+    en: {
+      title: "What's new",
+      items: [
+        "New: scheduled auto-blur — set a daily time range (e.g. 9am-5pm) to have privacy turn on by itself. Turning it off manually during that window is respected until the next cycle",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Nuevo: auto-difuminado por horario — define un rango de horas al día (ej. 9am-5pm) para que la privacidad se active sola. Si la apagas manualmente dentro de esa ventana, se respeta hasta el siguiente ciclo",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Neu: geplante automatische Unschärfe — lege einen täglichen Zeitraum fest (z. B. 9-17 Uhr), in dem sich die Privatsphäre automatisch aktiviert. Ein manuelles Ausschalten innerhalb dieses Zeitraums wird bis zum nächsten Zyklus respektiert",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Новое: автоматическое размытие по расписанию — задайте ежедневный временной диапазон (например, 9:00–17:00), и приватность будет включаться сама. Если вы выключите её вручную в этом окне, это сохранится до следующего цикла",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "جديد: تمويه تلقائي مجدول — حدد نطاقًا زمنيًا يوميًا (مثل 9 صباحًا-5 مساءً) ليتم تفعيل الخصوصية تلقائيًا. إذا أوقفتها يدويًا خلال تلك الفترة، يُحترم ذلك حتى الدورة التالية",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "新功能：按计划自动模糊——设置每天的时间段（例如上午9点到下午5点），隐私保护会自动开启。如果在此期间手动关闭，会一直保持到下一个周期",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {

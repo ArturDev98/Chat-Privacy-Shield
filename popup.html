@@ -288,6 +288,59 @@
       color: rgba(255,94,91,0.9);
     }
 
+    .schedule-section {
+      padding: 10px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .schedule-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .schedule-title {
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .schedule-times {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .schedule-times.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .schedule-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .schedule-field label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.45);
+    }
+
+    .schedule-field input[type="time"] {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #e9edef;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-family: inherit;
+      color-scheme: dark;
+    }
+
     .kofi-btn {
       display: inline-flex;
       align-items: center;
@@ -533,6 +586,27 @@
       <input type="file" id="import-file-input" accept="application/json,.json" style="display:none;">
     </div>
     <div id="backup-status" class="backup-status"></div>
+  </div>
+
+  <div class="schedule-section">
+    <div class="schedule-header">
+      <div class="schedule-title" data-i18n="scheduleTitle">Scheduled auto-blur</div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-schedule">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+    <div class="schedule-times" id="schedule-times">
+      <div class="schedule-field">
+        <label for="schedule-start" data-i18n="scheduleFrom">From</label>
+        <input type="time" id="schedule-start" value="09:00">
+      </div>
+      <div class="schedule-field">
+        <label for="schedule-end" data-i18n="scheduleTo">To</label>
+        <input type="time" id="schedule-end" value="17:00">
+      </div>
+    </div>
   </div>
 
   <div class="support-section">

@@ -20,6 +20,9 @@
     hideTypedText: false,
     autoBlurEnabled: false,
     hideChatSubtitle: false,
+    scheduleEnabled: false,
+    scheduleStart: "09:00",
+    scheduleEnd: "17:00",
     lang: "en",
   };
 
@@ -704,6 +707,68 @@
     document.addEventListener(evt, scheduleAutoBlur, { passive: true });
   });
 
+  // ---- Auto-difuminar por horario programado ----
+  // Al entrar a la ventana configurada (ej. 9:00-17:00), se activa la
+  // privacidad junto con todas las opciones principales de ocultar
+  // (fotos, nombres, chat activo, texto escrito, en línea/última vez) y
+  // las que hacen que ese difuminado siga siendo usable (revelar al
+  // pasar el cursor, contador de no leídos) — sin esto último, la lista
+  // difuminada queda inservible: no hay forma de leer nada ni de ver
+  // qué chats tienen mensajes pendientes. Al terminar la ventana, se
+  // desactiva todo de nuevo.
+  // Si el usuario apaga manualmente en medio de la ventana, no se vuelve
+  // a forzar el encendido hasta el siguiente ciclo (no "pelea" cada 20s).
+  let scheduleWasWithinWindow = false;
+
+  function isWithinSchedule() {
+    if (!settings.scheduleEnabled) return false;
+    const [startH, startM] = (settings.scheduleStart || "09:00").split(":").map(Number);
+    const [endH, endM] = (settings.scheduleEnd || "17:00").split(":").map(Number);
+    if ([startH, startM, endH, endM].some((n) => Number.isNaN(n))) return false;
+
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    if (startMinutes === endMinutes) return false;
+    if (startMinutes < endMinutes) {
+      return nowMinutes >= startMinutes && nowMinutes < endMinutes;
+    }
+    // Rango que cruza la medianoche (ej. 22:00 a 06:00)
+    return nowMinutes >= startMinutes || nowMinutes < endMinutes;
+  }
+
+  // Opciones que se activan por completo al arrancar la ventana
+  // programada — así el usuario no tiene que haberlas configurado
+  // manualmente de antemano para que el horario dé protección real.
+  const SCHEDULE_FULL_PRIVACY_KEYS = ["hideAvatars", "hideNames", "blurMain", "hideTypedText", "hideChatSubtitle", "hoverReveal", "showBadges"];
+
+  function checkSchedule() {
+    if (!settings.scheduleEnabled) {
+      scheduleWasWithinWindow = false;
+      return;
+    }
+    const withinWindow = isWithinSchedule();
+
+    if (withinWindow && !scheduleWasWithinWindow) {
+      // Arranca una ventana nueva: se activa todo.
+      settings.privacyActive = true;
+      SCHEDULE_FULL_PRIVACY_KEYS.forEach((key) => { settings[key] = true; });
+      applyState();
+      saveSettings();
+    } else if (!withinWindow && scheduleWasWithinWindow) {
+      // Termina la ventana: se desactiva.
+      settings.privacyActive = false;
+      applyState();
+      saveSettings();
+    }
+
+    scheduleWasWithinWindow = withinWindow;
+  }
+
+  setInterval(checkSchedule, 20000);
+
   // ---- Hover sobre la conversación activa (#main) ----
   // Delegado en `document` en vez de atado al nodo #main puntual: WhatsApp
   // remonta ese contenedor al cambiar de chat, así que un listener atado
@@ -886,6 +951,7 @@
   function init() {
     loadSettings(() => {
       applyState();
+      checkSchedule();
       buildPanel();
 
       // pane-side puede no existir aún — reintentar hasta que aparezca
@@ -1211,6 +1277,19 @@
     // excluir esos sitios uno por uno es un juego perdido, así que en vez
     // de eso se confirma positivamente el contexto correcto.
     if (!getActiveStatusMedia() && !findActiveTextStatus()) return;
+
+    // El visor de medios de un chat (para ver una foto/video adjunto)
+    // también muestra un elemento grande a pantalla completa, así que
+    // el chequeo de arriba no lo distingue del visor de Estados. Pero
+    // WhatsApp SÍ tiene su propio botón nativo de descarga ahí
+    // (data-testid="ic-download", confirmado por inspección) — algo que
+    // el visor de Estados nunca tuvo. Si está presente, ya hay una forma
+    // de descargar y no corresponde agregar la nuestra encima.
+    const nativeDownloadBtn = document.querySelector('[data-testid="ic-download"]');
+    if (nativeDownloadBtn) {
+      const rect = nativeDownloadBtn.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) return;
+    }
 
     const playBtn = findStatusPlayButton();
     const menuBtn = findStatusMenuButton();

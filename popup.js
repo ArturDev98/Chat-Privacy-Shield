@@ -14,6 +14,9 @@ const defaults = {
   hideTypedText: false,
   autoBlurEnabled: false,
   hideChatSubtitle: false,
+  scheduleEnabled: false,
+  scheduleStart: "09:00",
+  scheduleEnd: "17:00",
   lang: "en",
 };
 
@@ -61,6 +64,10 @@ function updateUI() {
   document.getElementById("toggle-hide-typed").checked = settings.hideTypedText;
   document.getElementById("toggle-auto-blur").checked = settings.autoBlurEnabled;
   document.getElementById("toggle-hide-subtitle").checked = settings.hideChatSubtitle;
+  document.getElementById("toggle-schedule").checked = settings.scheduleEnabled;
+  document.getElementById("schedule-start").value = settings.scheduleStart;
+  document.getElementById("schedule-end").value = settings.scheduleEnd;
+  document.getElementById("schedule-times").classList.toggle("disabled", !settings.scheduleEnabled);
   applyTranslations();
 }
 
@@ -120,6 +127,22 @@ document.getElementById("toggle-auto-blur").addEventListener("change", (e) => {
 
 document.getElementById("toggle-hide-subtitle").addEventListener("change", (e) => {
   settings.hideChatSubtitle = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-schedule").addEventListener("change", (e) => {
+  settings.scheduleEnabled = e.target.checked;
+  document.getElementById("schedule-times").classList.toggle("disabled", !settings.scheduleEnabled);
+  saveAndSync();
+});
+
+document.getElementById("schedule-start").addEventListener("change", (e) => {
+  settings.scheduleStart = e.target.value || defaults.scheduleStart;
+  saveAndSync();
+});
+
+document.getElementById("schedule-end").addEventListener("change", (e) => {
+  settings.scheduleEnd = e.target.value || defaults.scheduleEnd;
   saveAndSync();
 });
 
