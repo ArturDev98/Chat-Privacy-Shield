@@ -203,6 +203,14 @@ body.wps-active.wps-hover-reveal.wps-header-hovered #main [data-testid="conversa
   pointer-events: none;
 }
 
+/* Sin transición mientras se arrastra, para que siga al cursor sin
+   retraso — y cursor de "agarrar" para que se note que es arrastrable */
+#wps-panel.wps-dragging,
+#wps-restore-hint.wps-dragging {
+  transition: none !important;
+  cursor: grabbing !important;
+}
+
 /* ---- Pastilla "restaurar panel" cuando está minimizado ----
    Muy transparente por defecto para no tapar lo que se está escribiendo
    en el input de chat de WhatsApp (que suele quedar justo debajo);

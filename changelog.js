@@ -300,6 +300,44 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "1.12.1": {
+    en: {
+      title: "What's new",
+      items: [
+        "Fixed: the floating panel and the minimized pill can now be dragged out of the way — useful when a long message covers them while you're editing it",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Corregido: ahora se pueden arrastrar el panel flotante y la pastilla minimizada — útil cuando un mensaje largo queda tapado mientras lo estás editando",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Behoben: Das schwebende Bedienfeld und die minimierte Pille können jetzt weggezogen werden — nützlich, wenn eine lange Nachricht beim Bearbeiten verdeckt wird",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Исправлено: плавающую панель и свёрнутую плашку теперь можно перетаскивать — полезно, когда длинное сообщение оказывается под ними во время редактирования",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "إصلاح: يمكن الآن سحب اللوحة العائمة والشارة المصغّرة بعيدًا — مفيد عندما تغطي رسالة طويلة عليهما أثناء تحريرها",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "修复：现在可以拖动悬浮面板和最小化的小圆标——在编辑长消息时它们挡住文字会很有用",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {

@@ -23,6 +23,8 @@
     scheduleEnabled: false,
     scheduleStart: "09:00",
     scheduleEnd: "17:00",
+    panelPosition: null,
+    hintPosition: null,
     lang: "en",
   };
 
@@ -47,6 +49,88 @@
     try {
       chrome.storage.local.set({ [STORAGE_KEY]: settings });
     } catch {}
+  }
+
+  // ---- Hacer un elemento arrastrable (panel y pastilla minimizada) ----
+  // Se detecta un umbral de movimiento para diferenciar "clic normal en
+  // un botón" de "arrastrar" — si el mouse no se mueve más de unos
+  // pocos píxeles, se deja pasar el clic tal cual (los botones del panel
+  // siguen funcionando); si sí hubo arrastre real, se suprime el clic
+  // resultante para no disparar accidentalmente un botón de abajo al
+  // soltar. La posición final se guarda para que no se resetee al
+  // recargar la página.
+  const dragState = { active: false };
+
+  function makeDraggable(el, storageKey) {
+    const DRAG_THRESHOLD = 4;
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    let dragging = false;
+    let moved = false;
+
+    function applyPosition(left, top) {
+      const maxLeft = Math.max(0, window.innerWidth - el.offsetWidth);
+      const maxTop = Math.max(0, window.innerHeight - el.offsetHeight);
+      const clampedLeft = Math.min(Math.max(0, left), maxLeft);
+      const clampedTop = Math.min(Math.max(0, top), maxTop);
+      el.style.left = `${clampedLeft}px`;
+      el.style.top = `${clampedTop}px`;
+      el.style.bottom = "auto";
+      el.style.transform = "none";
+      return { left: clampedLeft, top: clampedTop };
+    }
+
+    // Restaurar posición guardada de una sesión anterior, si existe
+    const saved = settings[storageKey];
+    if (saved && typeof saved.left === "number" && typeof saved.top === "number") {
+      applyPosition(saved.left, saved.top);
+    }
+
+    el.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return; // solo clic izquierdo
+      dragging = true;
+      moved = false;
+      const rect = el.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+    });
+
+    document.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      if (!moved && Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      if (!moved) {
+        moved = true;
+        dragState.active = true;
+        el.classList.add("wps-dragging");
+      }
+      applyPosition(startLeft + dx, startTop + dy);
+    });
+
+    document.addEventListener("mouseup", () => {
+      if (!dragging) return;
+      dragging = false;
+      dragState.active = false;
+      el.classList.remove("wps-dragging");
+      if (moved) {
+        const rect = el.getBoundingClientRect();
+        settings[storageKey] = { left: rect.left, top: rect.top };
+        saveSettings();
+        // Se hubo arrastre real: se suprime el clic que dispararía el
+        // navegador justo después, para no activar por accidente un
+        // botón que haya quedado bajo el cursor al soltar.
+        const suppressClick = (ev) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+        };
+        document.addEventListener("click", suppressClick, { capture: true, once: true });
+      }
+    });
   }
 
   // ---- Aplicar/retirar clases CSS en body ----
@@ -270,18 +354,14 @@
     `;
 
     document.body.appendChild(panel);
+    makeDraggable(panel, "panelPosition");
 
     // ---- Auto-cerrar al sacar el cursor (como si se hubiera dado en la X) ----
-    // A diferencia del botón de pin, esto NO se guarda en storage — es un
-    // estado de la sesión actual. Si se guardara, el panel empezaría
-    // oculto en la próxima carga de WhatsApp, que no es lo que se quiere:
-    // la idea es que deje de estorbar mientras no se usa, pero siga
-    // apareciendo normalmente la próxima vez que se abra la página.
-    // Un pequeño retraso evita que se cierre por sacar el cursor un
-    // instante sin querer entre un botón y otro.
+
     let panelAutoHideTimer = null;
 
     panel.addEventListener("mouseleave", () => {
+      if (dragState.active) return; // no cerrar mientras se está arrastrando
       clearTimeout(panelAutoHideTimer);
       panelAutoHideTimer = setTimeout(() => {
         if (panel.classList.contains("wps-panel-hidden")) return;
@@ -423,8 +503,6 @@
   }
 
   // ---- Hint para restaurar panel minimizado ----
-  // Se mantiene bien transparente por defecto para no tapar lo que se está
-  // escribiendo en el input de chat; al pasar el cursor se vuelve legible.
   function showRestoreHint() {
     const hint = document.createElement("div");
     hint.id = "wps-restore-hint";
@@ -437,6 +515,7 @@
       saveSettings();
     });
     document.body.appendChild(hint);
+    makeDraggable(hint, "hintPosition");
   }
 
   // ---- Badge de no leídos: overlay que "escapa" del blur del item ----
