@@ -300,7 +300,7 @@ const CPS_CHANGELOG = {
       ],
     },
   },
-  "1.12.1": {
+  "1.12.2": {
     en: {
       title: "What's new",
       items: [
@@ -335,6 +335,44 @@ const CPS_CHANGELOG = {
       title: "更新内容",
       items: [
         "修复：现在可以拖动悬浮面板和最小化的小圆标——在编辑长消息时它们挡住文字会很有用",
+      ],
+    },
+  },
+  "1.12.4": {
+    en: {
+      title: "What's new",
+      items: [
+        "Fixed: dragging the blur intensity slider no longer moves the whole panel instead of adjusting the value",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Corregido: mover el slider de intensidad de difuminado ya no arrastra todo el panel en vez de ajustar el valor",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Behoben: Das Ziehen des Unschärfe-Reglers verschiebt nicht mehr das gesamte Bedienfeld, statt den Wert anzupassen",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Исправлено: перетаскивание ползунка интенсивности размытия больше не двигает всю панель вместо изменения значения",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "إصلاح: سحب شريط تمرير شدة التمويه لم يعد يحرّك اللوحة بأكملها بدلاً من ضبط القيمة",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "修复：拖动模糊强度滑块时不再移动整个面板，而是正常调整数值",
       ],
     },
   },

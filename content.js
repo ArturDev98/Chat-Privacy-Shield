@@ -90,6 +90,11 @@
 
     el.addEventListener("mousedown", (e) => {
       if (e.button !== 0) return; // solo clic izquierdo
+      // No arrancar un arrastre del panel si el clic fue sobre un control
+      // interactivo propio (el slider de intensidad, por ejemplo) — si no,
+      // mover el slider terminaba arrastrando el panel entero en vez de
+      // ajustar el valor.
+      if (e.target.closest?.('input, [type="range"]')) return;
       dragging = true;
       moved = false;
       const rect = el.getBoundingClientRect();
@@ -357,7 +362,13 @@
     makeDraggable(panel, "panelPosition");
 
     // ---- Auto-cerrar al sacar el cursor (como si se hubiera dado en la X) ----
-
+    // A diferencia del botón de pin, esto NO se guarda en storage — es un
+    // estado de la sesión actual. Si se guardara, el panel empezaría
+    // oculto en la próxima carga de WhatsApp, que no es lo que se quiere:
+    // la idea es que deje de estorbar mientras no se usa, pero siga
+    // apareciendo normalmente la próxima vez que se abra la página.
+    // Un pequeño retraso evita que se cierre por sacar el cursor un
+    // instante sin querer entre un botón y otro.
     let panelAutoHideTimer = null;
 
     panel.addEventListener("mouseleave", () => {
@@ -503,6 +514,8 @@
   }
 
   // ---- Hint para restaurar panel minimizado ----
+  // Se mantiene bien transparente por defecto para no tapar lo que se está
+  // escribiendo en el input de chat; al pasar el cursor se vuelve legible.
   function showRestoreHint() {
     const hint = document.createElement("div");
     hint.id = "wps-restore-hint";
