@@ -1039,6 +1039,22 @@
     });
   }
 
+  // Se agrega revisión periódica para ocultar el preview
+  setInterval(() => {
+    const preview = document.getElementById("cps-status-preview");
+    if (!preview || !preview.classList.contains("visible")) return;
+
+    const drawer = document.querySelector('[data-testid="status-drawer"]');
+    if (!drawer) {
+      preview.classList.remove("visible");
+      return;
+    }
+    const rect = drawer.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      preview.classList.remove("visible");
+    }
+  }, 500);
+
   // ---- Init ----
   function init() {
     loadSettings(() => {

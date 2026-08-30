@@ -300,79 +300,41 @@ const CPS_CHANGELOG = {
       ],
     },
   },
-  "1.12.2": {
+  "1.12.3": {
     en: {
       title: "What's new",
       items: [
-        "Fixed: the floating panel and the minimized pill can now be dragged out of the way — useful when a long message covers them while you're editing it",
+        "Fixed: the status preview thumbnail no longer stays stuck on screen after switching away from the Status section to Chats or another tab",
       ],
     },
     es: {
       title: "Novedades",
       items: [
-        "Corregido: ahora se pueden arrastrar el panel flotante y la pastilla minimizada — útil cuando un mensaje largo queda tapado mientras lo estás editando",
+        "Corregido: la vista previa de estado ya no se queda pegada en pantalla al cambiar de la sección de Estados a Chats u otra pestaña",
       ],
     },
     de: {
       title: "Neuigkeiten",
       items: [
-        "Behoben: Das schwebende Bedienfeld und die minimierte Pille können jetzt weggezogen werden — nützlich, wenn eine lange Nachricht beim Bearbeiten verdeckt wird",
+        "Behoben: Die Status-Vorschau bleibt nicht mehr auf dem Bildschirm hängen, wenn du von Status zu Chats oder einem anderen Tab wechselst",
       ],
     },
     ru: {
       title: "Что нового",
       items: [
-        "Исправлено: плавающую панель и свёрнутую плашку теперь можно перетаскивать — полезно, когда длинное сообщение оказывается под ними во время редактирования",
+        "Исправлено: предпросмотр статуса больше не остаётся зависшим на экране при переходе из раздела «Статусы» в «Чаты» или другую вкладку",
       ],
     },
     ar: {
       title: "الجديد",
       items: [
-        "إصلاح: يمكن الآن سحب اللوحة العائمة والشارة المصغّرة بعيدًا — مفيد عندما تغطي رسالة طويلة عليهما أثناء تحريرها",
+        "إصلاح: لم تعد معاينة الحالة تبقى عالقة على الشاشة عند الانتقال من قسم الحالات إلى الدردشات أو أي علامة تبويب أخرى",
       ],
     },
     zh: {
       title: "更新内容",
       items: [
-        "修复：现在可以拖动悬浮面板和最小化的小圆标——在编辑长消息时它们挡住文字会很有用",
-      ],
-    },
-  },
-  "1.12.4": {
-    en: {
-      title: "What's new",
-      items: [
-        "Fixed: dragging the blur intensity slider no longer moves the whole panel instead of adjusting the value",
-      ],
-    },
-    es: {
-      title: "Novedades",
-      items: [
-        "Corregido: mover el slider de intensidad de difuminado ya no arrastra todo el panel en vez de ajustar el valor",
-      ],
-    },
-    de: {
-      title: "Neuigkeiten",
-      items: [
-        "Behoben: Das Ziehen des Unschärfe-Reglers verschiebt nicht mehr das gesamte Bedienfeld, statt den Wert anzupassen",
-      ],
-    },
-    ru: {
-      title: "Что нового",
-      items: [
-        "Исправлено: перетаскивание ползунка интенсивности размытия больше не двигает всю панель вместо изменения значения",
-      ],
-    },
-    ar: {
-      title: "الجديد",
-      items: [
-        "إصلاح: سحب شريط تمرير شدة التمويه لم يعد يحرّك اللوحة بأكملها بدلاً من ضبط القيمة",
-      ],
-    },
-    zh: {
-      title: "更新内容",
-      items: [
-        "修复：拖动模糊强度滑块时不再移动整个面板，而是正常调整数值",
+        "修复：从状态部分切换到聊天或其他标签页后，状态预览图不再卡在屏幕上",
       ],
     },
   },
