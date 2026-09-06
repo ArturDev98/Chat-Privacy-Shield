@@ -175,6 +175,22 @@ body.wps-active.wps-hover-reveal.wps-header-hovered #main [data-testid="conversa
   filter: blur(0px) !important;
 }
 
+/* ---- Ocultar la foto del contacto en el encabezado del chat abierto ---- */
+/* Independiente de "difuminar chat activo" — este toggle solo afecta la
+   foto de perfil que aparece junto al nombre. El header solo tiene un
+   <img> real (los íconos de la barra de herramientas son SVG), así que
+   apuntar a cualquier img dentro de header es seguro y no ambiguo. */
+body.wps-active.wps-hide-header-avatar #main header img {
+  filter: blur(var(--wps-blur));
+  transition: filter var(--wps-transition);
+}
+
+/* Se revela con el mismo hover que ya usan el nombre y "en línea" —
+   pasar el cursor por la foto+nombre+subtítulo lo muestra todo junto */
+body.wps-active.wps-hide-header-avatar.wps-header-hovered #main header img {
+  filter: blur(0px) !important;
+}
+
 /* ---- Panel flotante UI ---- */
 #wps-panel {
   position: fixed;

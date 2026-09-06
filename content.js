@@ -25,6 +25,8 @@
     scheduleEnd: "17:00",
     panelPosition: null,
     hintPosition: null,
+    blurOnTabHidden: false,
+    hideHeaderAvatar: false,
     lang: "en",
   };
 
@@ -51,14 +53,7 @@
     } catch {}
   }
 
-  // ---- Hacer un elemento arrastrable (panel y pastilla minimizada) ----
-  // Se detecta un umbral de movimiento para diferenciar "clic normal en
-  // un botón" de "arrastrar" — si el mouse no se mueve más de unos
-  // pocos píxeles, se deja pasar el clic tal cual (los botones del panel
-  // siguen funcionando); si sí hubo arrastre real, se suprime el clic
-  // resultante para no disparar accidentalmente un botón de abajo al
-  // soltar. La posición final se guarda para que no se resetee al
-  // recargar la página.
+  // ---- Hacer un elemento arrastrable (panel y menú minimizado) ----
   const dragState = { active: false };
 
   function makeDraggable(el, storageKey) {
@@ -153,6 +148,7 @@
     body.classList.toggle("wps-blur-main", settings.blurMain);
     body.classList.toggle("wps-hide-typed", settings.hideTypedText);
     body.classList.toggle("wps-hide-subtitle", settings.hideChatSubtitle);
+    body.classList.toggle("wps-hide-header-avatar", settings.hideHeaderAvatar);
     // Si se desactiva hover reveal, limpiar items revelados que queden
     if (!settings.hoverReveal) {
       document.querySelectorAll(".wps-revealed").forEach(el => el.classList.remove("wps-revealed"));
@@ -345,6 +341,20 @@
         </svg>
       </button>
 
+      <!-- Auto-difuminar al perder el foco de la pestaña/ventana -->
+      <button class="wps-btn" id="wps-blur-tab-hidden" data-tip="${cpsT('panelTooltipBlurTabHidden', settings.lang)}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/>
+        </svg>
+      </button>
+
+      <!-- Ocultar foto del contacto en el encabezado del chat -->
+      <button class="wps-btn" id="wps-hide-header-avatar" data-tip="${cpsT('panelTooltipHideHeaderAvatar', settings.lang)}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/><line x1="3" y1="3" x2="21" y2="21"/>
+        </svg>
+      </button>
+
       <div class="wps-divider"></div>
 
       <!-- Idioma -->
@@ -362,13 +372,6 @@
     makeDraggable(panel, "panelPosition");
 
     // ---- Auto-cerrar al sacar el cursor (como si se hubiera dado en la X) ----
-    // A diferencia del botón de pin, esto NO se guarda en storage — es un
-    // estado de la sesión actual. Si se guardara, el panel empezaría
-    // oculto en la próxima carga de WhatsApp, que no es lo que se quiere:
-    // la idea es que deje de estorbar mientras no se usa, pero siga
-    // apareciendo normalmente la próxima vez que se abra la página.
-    // Un pequeño retraso evita que se cierre por sacar el cursor un
-    // instante sin querer entre un botón y otro.
     let panelAutoHideTimer = null;
 
     panel.addEventListener("mouseleave", () => {
@@ -446,6 +449,18 @@
       saveSettings();
     });
 
+    document.getElementById("wps-blur-tab-hidden").addEventListener("click", () => {
+      settings.blurOnTabHidden = !settings.blurOnTabHidden;
+      applyState();
+      saveSettings();
+    });
+
+    document.getElementById("wps-hide-header-avatar").addEventListener("click", () => {
+      settings.hideHeaderAvatar = !settings.hideHeaderAvatar;
+      applyState();
+      saveSettings();
+    });
+
     document.getElementById("wps-pin").addEventListener("click", () => {
       settings.panelVisible = false;
       panel.classList.add("wps-panel-hidden");
@@ -476,6 +491,8 @@
     const hideTypedBtn = document.getElementById("wps-hide-typed");
     const autoBlurBtn = document.getElementById("wps-auto-blur");
     const hideSubtitleBtn = document.getElementById("wps-hide-subtitle");
+    const blurTabHiddenBtn = document.getElementById("wps-blur-tab-hidden");
+    const hideHeaderAvatarBtn = document.getElementById("wps-hide-header-avatar");
     const langBtn = document.getElementById("wps-lang");
     const pinBtn = document.getElementById("wps-pin");
     const slider = document.getElementById("wps-blur-slider");
@@ -490,6 +507,8 @@
     hideTypedBtn?.classList.toggle("active", settings.hideTypedText);
     autoBlurBtn?.classList.toggle("active", settings.autoBlurEnabled);
     hideSubtitleBtn?.classList.toggle("active", settings.hideChatSubtitle);
+    blurTabHiddenBtn?.classList.toggle("active", settings.blurOnTabHidden);
+    hideHeaderAvatarBtn?.classList.toggle("active", settings.hideHeaderAvatar);
 
     if (slider) slider.value = settings.blurLevel;
     sliderWrap?.classList.toggle("visible", settings.privacyActive);
@@ -506,6 +525,8 @@
     hideTypedBtn?.setAttribute("data-tip", cpsT("panelTooltipHideTyped", settings.lang));
     autoBlurBtn?.setAttribute("data-tip", cpsT("panelTooltipAutoBlur", settings.lang));
     hideSubtitleBtn?.setAttribute("data-tip", cpsT("panelTooltipHideSubtitle", settings.lang));
+    blurTabHiddenBtn?.setAttribute("data-tip", cpsT("panelTooltipBlurTabHidden", settings.lang));
+    hideHeaderAvatarBtn?.setAttribute("data-tip", cpsT("panelTooltipHideHeaderAvatar", settings.lang));
     pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
     if (langBtn) {
       langBtn.textContent = settings.lang.toUpperCase();
@@ -861,11 +882,24 @@
 
   setInterval(checkSchedule, 20000);
 
+  // ---- Auto-difuminar al perder el foco de la pestaña/ventana ----
+  // Se activa apenas cambias de pestaña, minimizas o pasas a otra
+  // aplicación — no espera nada, es inmediato
+  function triggerTabHiddenBlur() {
+    if (!settings.blurOnTabHidden || settings.privacyActive) return;
+    settings.privacyActive = true;
+    applyState();
+    saveSettings();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) triggerTabHiddenBlur();
+  });
+
+  window.addEventListener("blur", triggerTabHiddenBlur);
+
   // ---- Hover sobre la conversación activa (#main) ----
-  // Delegado en `document` en vez de atado al nodo #main puntual: WhatsApp
-  // remonta ese contenedor al cambiar de chat, así que un listener atado
-  // directamente al elemento deja de funcionar después del primer cambio
-  // de conversación. La delegación por bubbling no tiene ese problema.
+  // Delegado en `document` en vez de atado al nodo #main puntual
   document.addEventListener("mouseover", (e) => {
     if (e.target.closest?.("#main")) {
       document.body.classList.add("wps-main-hovered");
@@ -882,11 +916,7 @@
   });
 
   // ---- Hover específico sobre el bloque de info del encabezado ----
-  // (foto + nombre + "en línea"/"última vez") — a propósito NO se usa
-  // wps-main-hovered para esto: esa clase se activa con solo pasar el
-  // cursor por cualquier parte del chat (incluido el fondo/mensajes),
-  // revelando el nombre aunque el mouse ni siquiera esté cerca del
-  // encabezado. Acá se ancla puntualmente a ese bloque.
+  // (foto + nombre + "en línea"/"última vez")
   document.addEventListener("mouseover", (e) => {
     if (e.target.closest?.('[data-testid="conversation-info-header"]')) {
       document.body.classList.add("wps-header-hovered");
@@ -903,17 +933,6 @@
   });
 
   // ---- Hover por mensaje individual dentro de la conversación activa ----
-  // Más privado que revelar toda la conversación: solo se des-difumina la
-  // burbuja bajo el cursor. Delegado en `document` porque la lista de
-  // mensajes se re-renderiza constantemente (mensajes nuevos, scroll, etc).
-  //
-  // El hover se detecta desde la FILA completa (.focusable-list-item —
-  // clase real y estable de WhatsApp, no de las generadas) en vez de solo
-  // el contenedor del mensaje (msg-container): esa fila incluye también
-  // la zona donde aparece el menú nativo de reacciones/opciones de
-  // WhatsApp, que queda fuera de los límites de msg-container. Sin esto,
-  // acercarse al mensaje desde ese lado volvía a difuminarlo antes de
-  // tiempo. El blur en sí se sigue aplicando solo sobre msg-container.
   const MESSAGE_ROW_SELECTOR = ".focusable-list-item";
   const MESSAGE_SELECTOR = '[data-testid="msg-container"]';
 
@@ -1039,7 +1058,8 @@
     });
   }
 
-  // Se agrega revisión periódica para ocultar el preview
+  // Se revisa periódicamente si el drawer sigue presente y
+  // visible; si no, se oculta el preview.
   setInterval(() => {
     const preview = document.getElementById("cps-status-preview");
     if (!preview || !preview.classList.contains("visible")) return;
@@ -1094,9 +1114,7 @@
   }
 
   // ---- Popup de "novedades" al actualizar de versión ----
-  // Se muestra una sola vez por versión — background.js deja la bandera
-  // en storage cuando Chrome actualiza la extensión (chrome.runtime.
-  // onInstalled con reason "update"); acá solo se consume esa bandera.
+  // Se muestra una sola vez por versión.
   function checkPendingChangelog() {
     if (typeof chrome === "undefined" || !chrome.storage?.local) return;
     chrome.storage.local.get("wps_pending_changelog", (data) => {
@@ -1149,10 +1167,6 @@
   }
 
   // ---- Descargar estados (fotos y videos) ----
-  // El visor de estados usa <video>/<img>. Las fotos suelen cargar como
-  // `src="blob:..."`, pero los videos a veces usan una ruta relativa
-  // propia de WhatsApp (`/stream/video?key=...`) en vez de blob — como es
-  // same-origin, el fetch() funciona igual en ambos casos.
   function findStatusMenuButton() {
     // Se ancla al <title> interno "ic-more-vert" del ícono de tres puntos
     // en vez del aria-label ("Menú"), que cambia según el idioma de
@@ -1377,22 +1391,68 @@
     return btn;
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function findNextStatusButton() {
+    // Dejar de avanzar en último estado
+    return findButtonByIconTitle((name) => name === "ic-chevron-right");
+  }
+
+  async function downloadAllStatuses() {
+    const MAX_STATUSES = 30; // resguardo de seguridad ante algo inesperado
+    let count = 0;
+
+    while (count < MAX_STATUSES) {
+      await downloadCurrentStatus();
+      count++;
+
+      const nextBtn = findNextStatusButton();
+      if (!nextBtn) break; // no hay más estados de este contacto
+
+      nextBtn.click();
+      await sleep(700); // dar tiempo a que cargue el siguiente estado
+    }
+  }
+
+  function buildStatusDownloadAllButton(anchorBtn) {
+    const btn = anchorBtn.cloneNode(true);
+    btn.removeAttribute("data-tab");
+    btn.removeAttribute("aria-expanded");
+    btn.removeAttribute("aria-haspopup");
+
+    const label = cpsT("downloadAllStatuses", settings.lang);
+    btn.setAttribute("aria-label", label);
+    btn.title = label;
+
+    const svg = btn.querySelector("svg");
+    if (svg) {
+      svg.setAttribute("viewBox", "0 0 24 24");
+      // ïcono descargar todos los estados
+      svg.innerHTML = `
+        <path fill="currentColor" d="M12 13.2 8.3 9.5l1.3-1.3L11 9.4V2h2v7.4l1.4-1.2 1.3 1.3L12 13.2Z"/>
+        <rect x="5" y="15.6" width="14" height="1.6" rx="0.8" fill="currentColor"/>
+        <rect x="5" y="18.3" width="14" height="1.6" rx="0.8" fill="currentColor" opacity="0.6"/>
+        <rect x="5" y="21" width="14" height="1.6" rx="0.8" fill="currentColor" opacity="0.32"/>
+      `;
+    }
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      downloadAllStatuses();
+    });
+
+    return btn;
+  }
+
   function injectStatusDownloadButton() {
-    // Se exige que haya de verdad una foto/video/texto de estado visible
-    // en pantalla en este momento. Sin este chequeo, el botón terminaba
-    // colándose en cualquier otro lugar de WhatsApp que reutilice el
-    // mismo ícono "⋮" (lista de chats, panel de info de contacto, etc.) —
-    // excluir esos sitios uno por uno es un juego perdido, así que en vez
-    // de eso se confirma positivamente el contexto correcto.
+    // Validar que exista un estado activo (foto/video o texto) antes de inyectar el botón
     if (!getActiveStatusMedia() && !findActiveTextStatus()) return;
 
-    // El visor de medios de un chat (para ver una foto/video adjunto)
-    // también muestra un elemento grande a pantalla completa, así que
-    // el chequeo de arriba no lo distingue del visor de Estados. Pero
-    // WhatsApp SÍ tiene su propio botón nativo de descarga ahí
-    // (data-testid="ic-download", confirmado por inspección) — algo que
-    // el visor de Estados nunca tuvo. Si está presente, ya hay una forma
-    // de descargar y no corresponde agregar la nuestra encima.
+    // El visualizar de estados nativo ya tiene un botón de descarga (solo en fotos/videos, no en texto) — si está presente y visible, 
+    // no se inyecta el botón extra.
     const nativeDownloadBtn = document.querySelector('[data-testid="ic-download"]');
     if (nativeDownloadBtn) {
       const rect = nativeDownloadBtn.getBoundingClientRect();
@@ -1412,12 +1472,18 @@
     span.className = wrapper.className || "";
     span.appendChild(buildStatusDownloadButton(anchorBtn));
 
+    const spanAll = document.createElement("span");
+    spanAll.className = wrapper.className || "";
+    spanAll.appendChild(buildStatusDownloadAllButton(anchorBtn));
+
     if (playBtn) {
       // Junto a Reproducir/Pausar (estados de video)
       wrapper.after(span);
+      span.after(spanAll);
     } else {
       // Sin botón de play (foto): se ubica antes del menú
       wrapper.parentElement?.insertBefore(span, wrapper);
+      wrapper.parentElement?.insertBefore(spanAll, wrapper);
     }
   }
 
@@ -1446,9 +1512,7 @@
         if (statusDrawer) setupStatusPreview();
       }
     }
-    // El visor de estados se remonta cada vez que se abre uno nuevo —
-    // se revisa en cada tanda de mutaciones (barato, y el propio flag
-    // `_wpsDownloadInjected` evita duplicados dentro de un mismo visor).
+    // El visor de estados se remonta cada vez que se abre uno nuevo
     injectStatusDownloadButton();
   });
   observer.observe(document.body, { childList: true, subtree: true });

@@ -17,6 +17,8 @@ const defaults = {
   scheduleEnabled: false,
   scheduleStart: "09:00",
   scheduleEnd: "17:00",
+  blurOnTabHidden: false,
+  hideHeaderAvatar: false,
   lang: "en",
 };
 
@@ -68,6 +70,8 @@ function updateUI() {
   document.getElementById("schedule-start").value = settings.scheduleStart;
   document.getElementById("schedule-end").value = settings.scheduleEnd;
   document.getElementById("schedule-times").classList.toggle("disabled", !settings.scheduleEnabled);
+  document.getElementById("toggle-blur-tab-hidden").checked = settings.blurOnTabHidden;
+  document.getElementById("toggle-hide-header-avatar").checked = settings.hideHeaderAvatar;
   applyTranslations();
 }
 
@@ -127,6 +131,16 @@ document.getElementById("toggle-auto-blur").addEventListener("change", (e) => {
 
 document.getElementById("toggle-hide-subtitle").addEventListener("change", (e) => {
   settings.hideChatSubtitle = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-blur-tab-hidden").addEventListener("change", (e) => {
+  settings.blurOnTabHidden = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-hide-header-avatar").addEventListener("change", (e) => {
+  settings.hideHeaderAvatar = e.target.checked;
   saveAndSync();
 });
 
