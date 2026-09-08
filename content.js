@@ -167,32 +167,50 @@
     scheduleAutoBlur();
   }
 
-  // ---- Hover reveal: por item individual en la lista de chats ----
-  function setupHoverReveal() {
-    // pane-side: hover por cada chat individualmente
-    const pane = document.getElementById("pane-side");
-    if (!pane || pane._wpsHoverBound) return;
-    pane._wpsHoverBound = true;
+  // ---- Hover reveal: por item individual en listas de chats/llamadas ----
+
+  // Selector real del contenedor de cada fila (confirmado via consola). Lo
+  // usan por igual la lista de chats, la de archivados y la de Llamadas —
+  // las tres reutilizan el mismo componente de lista de WhatsApp.
+  const HOVER_ITEM_SELECTOR = '[data-testid^="list-item-"]';
+
+  // El drawer de Favoritos (Llamadas > "Ver todos los favoritos") NO usa esas
+  // filas: cada contacto es una tarjeta [data-testid="cell-frame-container"]
+  // suelta, sin list-item-N alrededor.
+  const HOVER_CARD_SELECTOR = '[data-testid="cell-frame-container"]';
+
+  // La fila list-item-N manda cuando existe — es la que esperan las reglas de
+  // CSS de chats/archivados/Llamadas, y en otras vistas la tarjeta puede ir
+  // anidada dentro de ella (closest devolvería la interna y el nombre se
+  // quedaría difuminado). La tarjeta suelta es solo el respaldo.
+  function findHoverItem(target) {
+    if (!target || !target.closest) return null;
+    return target.closest(HOVER_ITEM_SELECTOR) || target.closest(HOVER_CARD_SELECTOR);
+  }
+
+  // Engancha el revelado por hover a un contenedor con scroll. Se marca el
+  // elemento con _wpsHoverBound para no duplicar listeners si se vuelve a
+  // pasar por aquí (el observer puede llamar varias veces).
+  function bindHoverContainer(container) {
+    if (!container || container._wpsHoverBound) return;
+    container._wpsHoverBound = true;
 
     // Refrescar overlays de badges al instante al hacer scroll (en vez de
     // esperar al siguiente tick del loop de 400ms)
-    pane.addEventListener("scroll", scheduleBadgeRefresh, { passive: true });
+    container.addEventListener("scroll", scheduleBadgeRefresh, { passive: true });
 
-    // Selector real del contenedor de cada fila de chat (confirmado via consola)
-    const ITEM_SELECTORS = '[data-testid^="list-item-"]';
-
-    pane.addEventListener("mouseover", (e) => {
+    container.addEventListener("mouseover", (e) => {
       if (!settings.hoverReveal) return;
-      const item = e.target.closest(ITEM_SELECTORS);
+      const item = findHoverItem(e.target);
       if (item && !item.classList.contains("wps-revealed")) {
         item.classList.add("wps-revealed");
         scheduleBadgeRefresh();
       }
     });
 
-    pane.addEventListener("mouseout", (e) => {
+    container.addEventListener("mouseout", (e) => {
       if (!settings.hoverReveal) return;
-      const item = e.target.closest(ITEM_SELECTORS);
+      const item = findHoverItem(e.target);
       if (item) {
         const related = e.relatedTarget;
         if (!item.contains(related)) {
@@ -201,40 +219,52 @@
         }
       }
     });
+  }
 
-    // archived-chatlist: se monta dinámicamente, usar observer dedicado
+  function setupHoverReveal() {
+    // IMPORTANTE: al abrir la pestaña de Llamadas, WhatsApp monta un SEGUNDO
+    // elemento con id="pane-side" dentro de [data-testid="calls-tab-drawer"]
+    // — id duplicado en el documento, confirmado inspeccionando el DOM. El
+    // CSS sí difumina ambos (un selector #pane-side matchea todos), pero
+    // getElementById devuelve solo el primero (el de chats), así que la
+    // lista de llamadas quedaba difuminada y sin forma de revelarse al pasar
+    // el cursor. Por eso se recorren TODOS con querySelectorAll.
+    document.querySelectorAll("#pane-side").forEach(bindHoverContainer);
+
+    // Los tres se montan dinámicamente al entrar a su sección
     bindArchivedChatlist();
+    bindCallsDrawer();
+    bindFavoritesDrawer();
   }
 
   // ---- Enlazar archived-chatlist cuando aparece en el DOM ----
   function bindArchivedChatlist() {
-    const archived = document.querySelector('[data-testid="archived-chatlist"]');
-    if (!archived || archived._wpsHoverBound) return;
-    archived._wpsHoverBound = true;
+    bindHoverContainer(document.querySelector('[data-testid="archived-chatlist"]'));
+  }
 
-    archived.addEventListener("scroll", scheduleBadgeRefresh, { passive: true });
+  // ---- Enlazar la lista de Llamadas cuando aparece en el DOM ----
+  function bindCallsDrawer(retries = 10) {
+    const drawer = document.querySelector('[data-testid="calls-tab-drawer"]');
+    if (!drawer) return;
 
-    const ITEM_SELECTORS = '[data-testid^="list-item-"]';
+    // La lista vive en un #pane-side propio dentro del drawer. Si el drawer
+    // ya está montado pero su lista todavía no, se reintenta un rato corto
+    // en vez de perder el enganche.
+    const pane = drawer.querySelector("#pane-side");
+    if (pane) {
+      bindHoverContainer(pane);
+    } else if (retries > 0) {
+      setTimeout(() => bindCallsDrawer(retries - 1), 200);
+    }
+  }
 
-    archived.addEventListener("mouseover", (e) => {
-      if (!settings.hoverReveal) return;
-      const item = e.target.closest(ITEM_SELECTORS);
-      if (item && !item.classList.contains("wps-revealed")) {
-        item.classList.add("wps-revealed");
-        scheduleBadgeRefresh();
-      }
-    });
-
-    archived.addEventListener("mouseout", (e) => {
-      if (!settings.hoverReveal) return;
-      const item = e.target.closest(ITEM_SELECTORS);
-      if (item) {
-        const related = e.relatedTarget;
-        if (!item.contains(related)) {
-          item.classList.remove("wps-revealed");
-          scheduleBadgeRefresh();
-        }
-      }
+  // ---- Enlazar el drawer de Favoritos cuando aparece en el DOM ----
+  function bindFavoritesDrawer() {
+    document.querySelectorAll('[data-testid="favorites-drawer"]').forEach((el) => {
+      // WhatsApp anida dos elementos con este mismo data-testid; basta con el
+      // externo, los eventos de los contactos burbujean hasta él.
+      if (el.parentElement?.closest('[data-testid="favorites-drawer"]')) return;
+      bindHoverContainer(el);
     });
   }
 
@@ -1504,6 +1534,20 @@
           ? node
           : node.querySelector?.('[data-testid="archived-chatlist"]');
         if (archived) bindArchivedChatlist();
+
+        // calls-tab-drawer montado dinámicamente (al abrir Llamadas). Trae su
+        // propio #pane-side, que necesita su propio enganche de hover.
+        const callsDrawer = node.matches?.('[data-testid="calls-tab-drawer"]')
+          ? node
+          : node.querySelector?.('[data-testid="calls-tab-drawer"]');
+        if (callsDrawer) bindCallsDrawer();
+
+        // favorites-drawer montado dinámicamente (Llamadas > "Ver todos los
+        // favoritos"). Sus tarjetas no son filas list-item-N.
+        const favoritesDrawer = node.matches?.('[data-testid="favorites-drawer"]')
+          ? node
+          : node.querySelector?.('[data-testid="favorites-drawer"]');
+        if (favoritesDrawer) bindFavoritesDrawer();
 
         // status-drawer montado dinámicamente
         const statusDrawer = node.matches?.('[data-testid="status-drawer"]')

@@ -37,6 +37,26 @@ body.wps-active.wps-hover-reveal [data-testid="archived-chatlist"] [data-testid^
   opacity: 1 !important;
 }
 
+/* ---- Drawer de Favoritos (Llamadas > "Ver todos los favoritos") ---- */
+body.wps-active [data-testid="favorites-drawer"] [data-testid="cell-frame-container"] {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+body.wps-active:not(.wps-hover-reveal) [data-testid="favorites-drawer"] {
+  pointer-events: none;
+}
+
+body.wps-active.wps-hover-reveal [data-testid="favorites-drawer"] {
+  pointer-events: auto;
+}
+
+body.wps-active.wps-hover-reveal [data-testid="favorites-drawer"] [data-testid="cell-frame-container"].wps-revealed {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+}
+
 /* Hover reveal dentro del chat abierto (#main): imagen individual */
 body.wps-active.wps-hover-reveal #main img[src*="blob:"]:hover,
 body.wps-active.wps-hover-reveal #main img[src*="data:"]:hover {
@@ -50,10 +70,7 @@ body.wps-active.wps-hover-reveal.wps-main-hovered img[src*="data:"] {
 }
 
 /* ---- Fotos de perfil + imágenes compartidas dentro del chat ---- */
-/* Importante: SIN acotar a un contenedor, `img[src*="blob:"]` también
-   atrapaba las fotos del visor de Estados (usan el mismo mecanismo blob:
-   para su contenido) — por eso se restringe a #main (chat abierto) y a
-   selectores de clase/testid de avatar, que no alcanzan el visor. */
+
 body.wps-active.wps-hide-avatars span[data-icon="default-user"],
 body.wps-active.wps-hide-avatars div[class*="avatar"] img,
 body.wps-active.wps-hide-avatars [data-testid*="photo"] img,
@@ -68,15 +85,17 @@ body.wps-active.wps-hide-avatars #main img[src*="data:"] {
    Importante: aunque el item padre ya pierda su blur al revelarse, la
    foto y el nombre tienen SU PROPIO filter aplicado directamente (más
    abajo) — el filtro no se hereda, así que sin esta regla se quedan
-   blureados aunque el resto del item ya se vea nítido. Se usa la clase
-   .wps-revealed (la que realmente se activa por hover, item por item) en
-   vez de wps-pane-hovered, que nunca llega a activarse. */
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed img[src*="blob:"],
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed img[src*="data:"],
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed span[data-icon="default-user"],
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed div[class*="avatar"] img,
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed [data-testid*="photo"] img,
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed [data-testid*="avatar"] img {
+   blureados aunque el resto del item ya se vea nítido. Se ancla solo en
+   .wps-revealed (la clase que realmente se activa por hover, item por item)
+   sin exigir un list-item-N alrededor: así cubre por igual las filas de
+   chats/archivados/Llamadas y las tarjetas del drawer de Favoritos, que no
+   tienen esa fila. Esa clase solo se pone en filas/tarjetas de lista. */
+body.wps-active.wps-hover-reveal .wps-revealed img[src*="blob:"],
+body.wps-active.wps-hover-reveal .wps-revealed img[src*="data:"],
+body.wps-active.wps-hover-reveal .wps-revealed span[data-icon="default-user"],
+body.wps-active.wps-hover-reveal .wps-revealed div[class*="avatar"] img,
+body.wps-active.wps-hover-reveal .wps-revealed [data-testid*="photo"] img,
+body.wps-active.wps-hover-reveal .wps-revealed [data-testid*="avatar"] img {
   filter: blur(0px) !important;
 }
 
@@ -92,9 +111,9 @@ body.wps-active.wps-hide-names span[dir="auto"][class*="x1iyjqo2"] {
 /* Quitar blur del nombre cuando el item está revelado (mismo motivo que
    arriba: el nombre tiene su propio filter, no alcanza con desblurear
    el item padre) */
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed span[class*="ggj6brxn"],
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed div[class*="_11JPr"] span,
-body.wps-active.wps-hover-reveal [data-testid^="list-item-"].wps-revealed span[dir="auto"][class*="x1iyjqo2"] {
+body.wps-active.wps-hover-reveal .wps-revealed span[class*="ggj6brxn"],
+body.wps-active.wps-hover-reveal .wps-revealed div[class*="_11JPr"] span,
+body.wps-active.wps-hover-reveal .wps-revealed span[dir="auto"][class*="x1iyjqo2"] {
   filter: blur(0px) !important;
 }
 

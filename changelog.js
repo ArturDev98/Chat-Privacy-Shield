@@ -94,6 +94,50 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "1.13.1": {
+    en: {
+      title: "What's new",
+      items: [
+        "Fixed: in the Calls section, hovering over an entry now reveals it, just like in the chat list — before, calls stayed blurred with no way to read them",
+        "Fixed: the Favorites list inside Calls is now blurred and revealed on hover too, the same as every other list",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Corregido: en la sección de Llamadas, pasar el cursor por una entrada ahora la revela, igual que en la lista de chats — antes se quedaban difuminadas sin forma de leerlas",
+        "Corregido: la lista de Favoritos dentro de Llamadas ahora también se difumina y se revela al pasar el cursor, igual que el resto de las listas",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Behoben: Im Bereich „Anrufe“ wird ein Eintrag jetzt beim Daraufzeigen sichtbar, genau wie in der Chatliste — vorher blieben Anrufe unscharf und unlesbar",
+        "Behoben: Die Favoritenliste innerhalb von „Anrufe“ wird jetzt ebenfalls unscharf und beim Daraufzeigen sichtbar, wie alle anderen Listen",
+      ],
+    },
+    ru: {
+      title: "Что нового",
+      items: [
+        "Исправлено: в разделе «Звонки» запись теперь раскрывается при наведении курсора, как в списке чатов — раньше звонки оставались размытыми и их нельзя было прочитать",
+        "Исправлено: список «Избранные» внутри раздела «Звонки» теперь тоже размывается и раскрывается при наведении курсора, как остальные списки",
+      ],
+    },
+    ar: {
+      title: "الجديد",
+      items: [
+        "إصلاح: في قسم المكالمات، أصبح تمرير المؤشر فوق أي إدخال يكشفه الآن، تمامًا كما في قائمة الدردشات — سابقًا كانت المكالمات تبقى مموّهة دون إمكانية قراءتها",
+        "إصلاح: قائمة المفضلة داخل قسم المكالمات أصبحت أيضًا مموّهة وتُكشف عند تمرير المؤشر، مثل بقية القوائم",
+      ],
+    },
+    zh: {
+      title: "更新内容",
+      items: [
+        "修复：在通话部分，将光标悬停在某条记录上现在会显示它，与聊天列表一致——此前通话记录会一直保持模糊且无法查看",
+        "修复：通话内的收藏列表现在也会模糊，并在悬停时显示，与其他列表保持一致",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {
