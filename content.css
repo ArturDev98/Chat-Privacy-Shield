@@ -578,3 +578,238 @@ body.wps-active.wps-hide-header-avatar.wps-header-hovered #main header img {
 #wps-changelog-close:hover {
   filter: brightness(1.08);
 }
+
+/* ============================================
+   Bloqueo con PIN (Pro)
+   ============================================ */
+
+.wps-hidden {
+  display: none !important;
+}
+
+/* El overlay es opaco y tapa todo; el blur del fondo es una segunda barrera
+   por si WhatsApp pinta algo fuera del flujo normal. */
+body.wps-locked #app {
+  filter: blur(24px) !important;
+}
+
+body.wps-locked {
+  overflow: hidden !important;
+}
+
+body.wps-locked #wps-panel,
+body.wps-locked #wps-restore-hint,
+body.wps-locked #cps-status-preview {
+  display: none !important;
+}
+
+#wps-lock-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0b141a;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, sans-serif;
+  animation: wps-lock-fade-in 0.18s ease;
+  user-select: none;
+}
+
+@keyframes wps-lock-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#wps-lock-card {
+  width: min(320px, 88vw);
+  padding: 30px 26px 26px;
+  border-radius: 20px;
+  background: #111b21;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+#wps-lock-card.wps-lock-shake {
+  animation: wps-lock-shake 0.4s ease;
+}
+
+@keyframes wps-lock-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-9px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+#wps-lock-shield {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+#wps-lock-title {
+  margin: 0 0 4px;
+  color: #e9edef;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+#wps-lock-sub {
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12.5px;
+}
+
+#wps-lock-dots {
+  display: flex;
+  justify-content: center;
+  gap: 11px;
+  margin-bottom: 12px;
+}
+
+.wps-lock-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.12s ease;
+}
+
+.wps-lock-dot.filled {
+  background: #25d366;
+  border-color: #25d366;
+  transform: scale(1.12);
+}
+
+#wps-lock-error {
+  min-height: 17px;
+  margin-bottom: 14px;
+  color: #f15c6d;
+  font-size: 12px;
+}
+
+/* El teclado no se refleja en RTL: un teclado numérico mantiene el 1 arriba a
+   la izquierda en todos los idiomas, como en cualquier teléfono. */
+#wps-lock-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  direction: ltr;
+}
+
+#wps-lock-keypad.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.wps-lock-key {
+  height: 52px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e9edef;
+  font-size: 19px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.08s ease;
+}
+
+.wps-lock-key:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.wps-lock-key:active {
+  transform: scale(0.94);
+}
+
+.wps-lock-key-alt {
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 17px;
+}
+
+/* Restablecer el PIN con la licencia */
+
+#wps-lock-forgot {
+  display: block;
+  margin: 14px auto 0;
+  padding: 4px 6px;
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: inherit;
+  font-size: 11.5px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+#wps-lock-forgot:hover {
+  color: #25d366;
+}
+
+#wps-lock-reset-hint {
+  margin: 0 0 10px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* La licencia es base64: siempre LTR, aunque la interfaz esté en árabe. */
+#wps-lock-reset-input {
+  direction: ltr;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e9edef;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+#wps-lock-reset-input:focus {
+  outline: none;
+  border-color: rgba(37, 211, 102, 0.5);
+}
+
+#wps-lock-reset-actions {
+  display: flex;
+  gap: 9px;
+  margin-top: 11px;
+}
+
+#wps-lock-reset-actions button {
+  flex: 1;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+#wps-lock-reset-actions button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+#wps-lock-reset-actions #wps-lock-reset-ok {
+  background: rgba(37, 211, 102, 0.15);
+  color: #25d366;
+}
+
+#wps-lock-reset-actions #wps-lock-reset-ok:hover {
+  background: rgba(37, 211, 102, 0.25);
+}

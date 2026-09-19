@@ -1,0 +1,5 @@
+# Llaves de firma de licencias — nunca deben entrar al repo.
+.cps-keys/
+*.jwk
+*.pem
+licenses.csv

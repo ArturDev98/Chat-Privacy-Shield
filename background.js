@@ -9,6 +9,9 @@ chrome.commands.onCommand.addListener(async (command) => {
   if (command === "toggle-panel") {
     chrome.tabs.sendMessage(tab.id, { action: "toggle-panel" });
   }
+  if (command === "lock-now") {
+    chrome.tabs.sendMessage(tab.id, { action: "lock-now" });
+  }
 });
 
 // Al actualizar de versión, se deja una bandera pendiente en storage.

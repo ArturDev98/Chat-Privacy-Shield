@@ -138,6 +138,56 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "1.14.0": {
+    en: {
+      title: "What's new",
+      items: [
+        "New (Pro): PIN Lock \u2014 WhatsApp Web asks for your PIN every time it opens, behind a full lock screen",
+        "New: lock instantly with Ctrl+Shift+L or the padlock button in the floating panel",
+        "New: activate Pro from the extension popup with your activation code",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Nuevo (Pro): Bloqueo con PIN \u2014 WhatsApp Web pide tu PIN cada vez que se abre, detr\u00e1s de una pantalla de bloqueo completa",
+        "Nuevo: bloquea al instante con Ctrl+Shift+L o con el candado del panel flotante",
+        "Nuevo: activa Pro desde el popup de la extensi\u00f3n con tu c\u00f3digo de activaci\u00f3n",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Neu (Pro): PIN-Sperre \u2014 WhatsApp Web fragt bei jedem \u00d6ffnen nach deiner PIN, hinter einem vollen Sperrbildschirm",
+        "Neu: sofort sperren mit Ctrl+Shift+L oder \u00fcber das Schloss-Symbol im schwebenden Panel",
+        "Neu: Pro direkt im Erweiterungs-Popup mit deinem Aktivierungscode freischalten",
+      ],
+    },
+    ru: {
+      title: "\u0427\u0442\u043e \u043d\u043e\u0432\u043e\u0433\u043e",
+      items: [
+        "\u041d\u043e\u0432\u043e\u0435 (Pro): \u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0430 PIN-\u043a\u043e\u0434\u043e\u043c \u2014 WhatsApp Web \u0437\u0430\u043f\u0440\u0430\u0448\u0438\u0432\u0430\u0435\u0442 PIN \u043f\u0440\u0438 \u043a\u0430\u0436\u0434\u043e\u043c \u043e\u0442\u043a\u0440\u044b\u0442\u0438\u0438, \u0437\u0430 \u043f\u043e\u043b\u043d\u044b\u043c \u044d\u043a\u0440\u0430\u043d\u043e\u043c \u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0438",
+        "\u041d\u043e\u0432\u043e\u0435: \u043c\u0433\u043d\u043e\u0432\u0435\u043d\u043d\u0430\u044f \u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0430 \u0447\u0435\u0440\u0435\u0437 Ctrl+Shift+L \u0438\u043b\u0438 \u043a\u043d\u043e\u043f\u043a\u0443-\u0437\u0430\u043c\u043e\u043a \u043d\u0430 \u043f\u043b\u0430\u0432\u0430\u044e\u0449\u0435\u0439 \u043f\u0430\u043d\u0435\u043b\u0438",
+        "\u041d\u043e\u0432\u043e\u0435: \u0430\u043a\u0442\u0438\u0432\u0430\u0446\u0438\u044f Pro \u0432\u043e \u0432\u0441\u043f\u043b\u044b\u0432\u0430\u044e\u0449\u0435\u043c \u043e\u043a\u043d\u0435 \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043d\u0438\u044f \u043f\u043e \u043a\u043e\u0434\u0443 \u0430\u043a\u0442\u0438\u0432\u0430\u0446\u0438\u0438",
+      ],
+    },
+    ar: {
+      title: "\u0627\u0644\u062c\u062f\u064a\u062f",
+      items: [
+        "\u062c\u062f\u064a\u062f (Pro): \u0627\u0644\u0642\u0641\u0644 \u0628\u0631\u0645\u0632 PIN \u2014 \u064a\u0637\u0644\u0628 \u0648\u0627\u062a\u0633\u0627\u0628 \u0648\u064a\u0628 \u0631\u0645\u0632\u0643 \u0641\u064a \u0643\u0644 \u0645\u0631\u0629 \u064a\u064f\u0641\u062a\u062d \u0641\u064a\u0647\u0627\u060c \u062e\u0644\u0641 \u0634\u0627\u0634\u0629 \u0642\u0641\u0644 \u0643\u0627\u0645\u0644\u0629",
+        "\u062c\u062f\u064a\u062f: \u0627\u0644\u0642\u0641\u0644 \u0627\u0644\u0641\u0648\u0631\u064a \u0628\u0640 Ctrl+Shift+L \u0623\u0648 \u0645\u0646 \u0632\u0631 \u0627\u0644\u0642\u0641\u0644 \u0641\u064a \u0627\u0644\u0644\u0648\u062d\u0629 \u0627\u0644\u0639\u0627\u0626\u0645\u0629",
+        "\u062c\u062f\u064a\u062f: \u062a\u0641\u0639\u064a\u0644 Pro \u0645\u0646 \u0646\u0627\u0641\u0630\u0629 \u0627\u0644\u0625\u0636\u0627\u0641\u0629 \u0628\u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u0631\u0645\u0632 \u0627\u0644\u062a\u0641\u0639\u064a\u0644",
+      ],
+    },
+    zh: {
+      title: "\u66f4\u65b0\u5185\u5bb9",
+      items: [
+        "\u65b0\u589e\uff08Pro\uff09\uff1aPIN \u7801\u9501 \u2014 \u6bcf\u6b21\u6253\u5f00 WhatsApp Web \u90fd\u4f1a\u5728\u5168\u5c4f\u9501\u5b9a\u754c\u9762\u540e\u8981\u6c42\u8f93\u5165 PIN \u7801",
+        "\u65b0\u589e\uff1a\u4f7f\u7528 Ctrl+Shift+L \u6216\u60ac\u6d6e\u9762\u677f\u4e0a\u7684\u9501\u5f62\u6309\u94ae\u7acb\u5373\u9501\u5b9a",
+        "\u65b0\u589e\uff1a\u5728\u6269\u5c55\u5f39\u7a97\u4e2d\u8f93\u5165\u6fc0\u6d3b\u7801\u5373\u53ef\u542f\u7528 Pro",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {

@@ -19,10 +19,13 @@ const defaults = {
   scheduleEnd: "17:00",
   blurOnTabHidden: false,
   hideHeaderAvatar: false,
+  pinLockEnabled: false,
   lang: "en",
 };
 
 let settings = { ...defaults };
+let proActive = false;
+let pinSet = false;
 
 function saveAndSync() {
   chrome.storage.local.set({ [STORAGE_KEY]: settings });
@@ -45,6 +48,10 @@ function applyTranslations() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     const key = el.getAttribute("data-i18n");
     el.textContent = cpsT(key, lang);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.placeholder = cpsT(el.getAttribute("data-i18n-placeholder"), lang);
   });
 
   document.getElementById("lang-toggle").textContent = lang.toUpperCase();
@@ -73,12 +80,14 @@ function updateUI() {
   document.getElementById("toggle-blur-tab-hidden").checked = settings.blurOnTabHidden;
   document.getElementById("toggle-hide-header-avatar").checked = settings.hideHeaderAvatar;
   applyTranslations();
+  updateProUI();
 }
 
 // ---- Cargar estado ----
 chrome.storage.local.get(STORAGE_KEY, (data) => {
   if (data[STORAGE_KEY]) settings = { ...defaults, ...data[STORAGE_KEY] };
   updateUI();
+  loadProState();
 });
 
 // ---- Eventos ----
@@ -239,7 +248,12 @@ document.getElementById("import-file-input").addEventListener("change", (e) => {
 
       if (!looksValid) throw new Error("El archivo no tiene el formato esperado");
 
+      // Importar no puede ser la puerta trasera para quitar el candado: si
+      // está armado, se conserva pase lo que pase en el archivo.
+      const lockWasOn = settings.pinLockEnabled;
       settings = { ...defaults, ...imported };
+      if (lockWasOn) settings.pinLockEnabled = true;
+
       updateUI();
       saveAndSync();
       showBackupStatus(cpsT("importSuccess", settings.lang), false);
@@ -252,3 +266,186 @@ document.getElementById("import-file-input").addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
+
+// ---- Bloqueo con PIN (Pro) ----
+
+async function loadProState() {
+  proActive = await cpsProIsActive();
+  pinSet = await cpsPinExists();
+
+  // La URL de compra se lee de pro.js, no se escribe a mano en el HTML.
+  const buyLink = document.getElementById("pro-buy-link");
+  if (buyLink) buyLink.href = CPS_PRO_BUY_URL;
+
+  updateProUI();
+}
+
+function updateProUI() {
+  const toggle = document.getElementById("toggle-pin-lock");
+  if (!toggle) return;
+
+  toggle.checked = proActive && pinSet && settings.pinLockEnabled;
+  toggle.disabled = !proActive;
+
+  document.getElementById("pro-box").style.display = proActive ? "none" : "flex";
+  document.getElementById("pro-active-box").style.display = proActive ? "flex" : "none";
+  document.getElementById("pin-actions").style.display = proActive && pinSet ? "flex" : "none";
+  document.getElementById("pin-hint").textContent = proActive
+    ? cpsT("pinLockHint", settings.lang)
+    : cpsT("proLockedHint", settings.lang);
+}
+
+function showPinStatus(text, isError) {
+  const el = document.getElementById("pin-status");
+  if (!el) return;
+  el.textContent = text;
+  el.classList.toggle("error", !!isError);
+  clearTimeout(showPinStatus._timer);
+  showPinStatus._timer = setTimeout(() => {
+    el.textContent = "";
+  }, 3500);
+}
+
+// ---- Diálogo de PIN ----
+
+let pinDialogResolve = null;
+
+function openPinDialog(title) {
+  return new Promise((resolve) => {
+    pinDialogResolve = resolve;
+    document.getElementById("pin-dialog-title").textContent = title;
+    document.getElementById("pin-dialog-error").textContent = "";
+    const input = document.getElementById("pin-dialog-input");
+    input.value = "";
+    document.getElementById("pin-dialog").classList.add("open");
+    input.focus();
+  });
+}
+
+function closePinDialog(value) {
+  document.getElementById("pin-dialog").classList.remove("open");
+  const resolve = pinDialogResolve;
+  pinDialogResolve = null;
+  resolve?.(value);
+}
+
+document.getElementById("pin-dialog-cancel").addEventListener("click", () => closePinDialog(null));
+
+document.getElementById("pin-dialog-ok").addEventListener("click", () => {
+  closePinDialog(document.getElementById("pin-dialog-input").value);
+});
+
+document.getElementById("pin-dialog-input").addEventListener("input", (e) => {
+  e.target.value = e.target.value.replace(/\D/g, "");
+});
+
+document.getElementById("pin-dialog-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") closePinDialog(e.target.value);
+  if (e.key === "Escape") closePinDialog(null);
+});
+
+async function askNewPin() {
+  // Se repite hasta que el PIN sea válido y coincida, o el usuario cancele.
+  for (;;) {
+    const first = await openPinDialog(cpsT("pinEnterNew", settings.lang));
+    if (first === null) return null;
+    if (!cpsPinIsValidFormat(first)) {
+      showPinStatus(cpsT("pinTooShort", settings.lang), true);
+      continue;
+    }
+    const second = await openPinDialog(cpsT("pinConfirmNew", settings.lang));
+    if (second === null) return null;
+    if (first !== second) {
+      showPinStatus(cpsT("pinMismatch", settings.lang), true);
+      continue;
+    }
+    return first;
+  }
+}
+
+async function askCurrentPin() {
+  const left = await cpsPinCooldownLeft();
+  if (left > 0) {
+    showPinStatus(`${cpsT("lockCooldown", settings.lang)} ${left}${cpsT("lockSeconds", settings.lang)}`, true);
+    return false;
+  }
+
+  const pin = await openPinDialog(cpsT("pinEnterCurrent", settings.lang));
+  if (pin === null) return false;
+
+  if (await cpsPinVerify(pin)) {
+    await cpsPinResetFails();
+    return true;
+  }
+
+  await cpsPinRegisterFail();
+  showPinStatus(cpsT("pinWrong", settings.lang), true);
+  return false;
+}
+
+// ---- Eventos de la sección ----
+
+document.getElementById("toggle-pin-lock").addEventListener("change", async (e) => {
+  const wantsOn = e.target.checked;
+
+  if (!proActive) {
+    e.target.checked = false;
+    showPinStatus(cpsT("proLockedHint", settings.lang), true);
+    return;
+  }
+
+  if (wantsOn) {
+    if (!pinSet) {
+      e.target.checked = false;
+      const pin = await askNewPin();
+      if (!pin) return;
+      await cpsPinSet(pin);
+      pinSet = true;
+    }
+    settings.pinLockEnabled = true;
+    saveAndSync();
+    updateProUI();
+    showPinStatus(cpsT("pinEnabled", settings.lang), false);
+    return;
+  }
+
+  // Apagarlo exige el PIN actual: si no, el popup sería la puerta trasera.
+  e.target.checked = true;
+  if (!(await askCurrentPin())) return;
+
+  await cpsPinClear();
+  pinSet = false;
+  settings.pinLockEnabled = false;
+  saveAndSync();
+  updateProUI();
+  showPinStatus(cpsT("pinDisabled", settings.lang), false);
+});
+
+document.getElementById("change-pin-btn").addEventListener("click", async () => {
+  if (!(await askCurrentPin())) return;
+  const pin = await askNewPin();
+  if (!pin) return;
+  await cpsPinSet(pin);
+  showPinStatus(cpsT("pinChanged", settings.lang), false);
+});
+
+document.getElementById("pro-activate-btn").addEventListener("click", async () => {
+  const input = document.getElementById("pro-code-input");
+  if (!(await cpsProActivate(input.value))) {
+    showPinStatus(cpsT("proInvalidCode", settings.lang), true);
+    return;
+  }
+  input.value = "";
+  proActive = true;
+  updateProUI();
+  showPinStatus(cpsT("proActivated", settings.lang), false);
+});
+
+document.getElementById("pro-deactivate-btn").addEventListener("click", async () => {
+  // Quitar Pro con el candado armado sería otra forma de abrirlo.
+  if (settings.pinLockEnabled && pinSet && !(await askCurrentPin())) return;
+
+  await cpsProDeactivate();
+  proActive = false;
+  updateProUI();
+});

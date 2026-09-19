@@ -27,11 +27,27 @@
     hintPosition: null,
     blurOnTabHidden: false,
     hideHeaderAvatar: false,
+    pinLockEnabled: false,
     lang: "en",
   };
 
   let settings = { ...defaults };
   let panel = null;
+
+  // Estado del bloqueo con PIN. "Desbloqueado" vive solo en memoria: recargar
+  // la página vuelve a pedir el PIN, que es el disparador elegido.
+  let isLocked = false;
+  let lockEntry = "";
+  let lockPinLength = CPS_PIN_MIN;
+  let lockCooldownTimer = null;
+  let lockForgotVisible = false;
+  let proActive = false;
+  let proSerial = null;
+  let pinConfigured = false;
+
+  // Fallos tras los que se ofrece restablecer con la licencia: se muestra justo
+  // antes del primer enfriamiento, cuando ya se ve que el PIN no sale.
+  const LOCK_FORGOT_AFTER_FAILS = 3;
 
   // ---- Cargar settings desde chrome.storage ----
   function loadSettings(cb) {
@@ -270,6 +286,7 @@
 
   // ---- Toggle privacidad principal ----
   function togglePrivacy() {
+    if (isLocked) return;
     settings.privacyActive = !settings.privacyActive;
     applyState();
     saveSettings();
@@ -277,6 +294,7 @@
 
   // ---- Toggle panel flotante ----
   function togglePanel() {
+    if (isLocked) return;
     settings.panelVisible = !settings.panelVisible;
     if (settings.panelVisible) {
       panel.classList.remove("wps-panel-hidden");
@@ -382,6 +400,13 @@
       <button class="wps-btn" id="wps-hide-header-avatar" data-tip="${cpsT('panelTooltipHideHeaderAvatar', settings.lang)}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/><line x1="3" y1="3" x2="21" y2="21"/>
+        </svg>
+      </button>
+
+      <!-- Bloquear ahora con PIN (Pro) -->
+      <button class="wps-btn wps-hidden" id="wps-lock-now" data-tip="${cpsT('panelTooltipLockNow', settings.lang)}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
       </button>
 
@@ -491,6 +516,10 @@
       saveSettings();
     });
 
+    document.getElementById("wps-lock-now").addEventListener("click", () => {
+      lockNow();
+    });
+
     document.getElementById("wps-pin").addEventListener("click", () => {
       settings.panelVisible = false;
       panel.classList.add("wps-panel-hidden");
@@ -523,6 +552,7 @@
     const hideSubtitleBtn = document.getElementById("wps-hide-subtitle");
     const blurTabHiddenBtn = document.getElementById("wps-blur-tab-hidden");
     const hideHeaderAvatarBtn = document.getElementById("wps-hide-header-avatar");
+    const lockNowBtn = document.getElementById("wps-lock-now");
     const langBtn = document.getElementById("wps-lang");
     const pinBtn = document.getElementById("wps-pin");
     const slider = document.getElementById("wps-blur-slider");
@@ -558,6 +588,10 @@
     blurTabHiddenBtn?.setAttribute("data-tip", cpsT("panelTooltipBlurTabHidden", settings.lang));
     hideHeaderAvatarBtn?.setAttribute("data-tip", cpsT("panelTooltipHideHeaderAvatar", settings.lang));
     pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
+
+    // El candado solo aparece cuando hay Pro + PIN configurado + opción activa.
+    lockNowBtn?.classList.toggle("wps-hidden", !pinLockArmed());
+    lockNowBtn?.setAttribute("data-tip", cpsT("panelTooltipLockNow", settings.lang));
     if (langBtn) {
       langBtn.textContent = settings.lang.toUpperCase();
       langBtn.setAttribute("data-tip", cpsT("language", settings.lang));
@@ -989,10 +1023,22 @@
   chrome.runtime.onMessage.addListener((msg) => {
     if (msg.action === "toggle-privacy") togglePrivacy();
     if (msg.action === "toggle-panel") togglePanel();
+    if (msg.action === "lock-now") lockNow();
     if (msg.action === "sync-settings" && msg.settings) {
-      settings = { ...settings, ...msg.settings };
+      const incoming = { ...msg.settings };
+      // Con la pantalla de bloqueo puesta, nada externo puede apagar el
+      // candado: solo el PIN correcto lo levanta.
+      if (isLocked) incoming.pinLockEnabled = settings.pinLockEnabled;
+      settings = { ...settings, ...incoming };
       applyState();
     }
+  });
+
+  // Pro y PIN viven fuera de wps_settings — hay que reaccionar cuando el
+  // popup los cambia, sin obligar a recargar WhatsApp Web.
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local") return;
+    if (changes[CPS_PRO_KEY] || changes[CPS_PIN_KEY]) refreshProState();
   });
 
   // ---- Keyboard shortcuts directos en la página ----
@@ -1000,6 +1046,7 @@
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.shiftKey && e.key === "H") { e.preventDefault(); togglePrivacy(); }
     if (mod && e.shiftKey && e.key === "K") { e.preventDefault(); togglePanel(); }
+    if (mod && e.shiftKey && e.key === "L") { e.preventDefault(); lockNow(); }
   });
 
   // ---- Status Preview ----
@@ -1104,6 +1151,260 @@
       preview.classList.remove("visible");
     }
   }, 500);
+
+  // ---- Bloqueo con PIN (Pro) ----
+
+  async function refreshProState() {
+    const pro = await cpsProGet();
+    proActive = pro.active;
+    proSerial = pro.serial;
+    pinConfigured = await cpsPinExists();
+    lockPinLength = await cpsPinLength();
+    // Si se pierde el Pro o se borra el PIN, no puede quedar nadie encerrado.
+    if (isLocked && !(proActive && pinConfigured)) unlockNow();
+    updatePanelUI();
+  }
+
+  function pinLockArmed() {
+    return proActive && pinConfigured && settings.pinLockEnabled;
+  }
+
+  function lockNow() {
+    if (!pinLockArmed() || isLocked) return;
+    isLocked = true;
+    lockEntry = "";
+    document.activeElement?.blur?.();
+    document.body.classList.add("wps-locked");
+    buildLockOverlay();
+    refreshLockCooldown();
+  }
+
+  function unlockNow() {
+    isLocked = false;
+    lockEntry = "";
+    clearInterval(lockCooldownTimer);
+    lockCooldownTimer = null;
+    document.body.classList.remove("wps-locked");
+    document.getElementById("wps-lock-overlay")?.remove();
+  }
+
+  const LOCK_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0", "ok"];
+
+  function buildLockOverlay() {
+    if (document.getElementById("wps-lock-overlay")) return;
+
+    const overlay = document.createElement("div");
+    overlay.id = "wps-lock-overlay";
+    overlay.dir = cpsIsRTL(settings.lang) ? "rtl" : "ltr";
+    overlay.innerHTML = `
+      <div id="wps-lock-card">
+        <div id="wps-lock-shield">🛡</div>
+        <h2 id="wps-lock-title">${cpsT("lockScreenTitle", settings.lang)}</h2>
+        <p id="wps-lock-sub">${cpsT("lockScreenSubtitle", settings.lang)}</p>
+        <div id="wps-lock-dots"></div>
+        <div id="wps-lock-error"></div>
+        <div id="wps-lock-keypad"></div>
+        <button type="button" id="wps-lock-forgot" class="wps-hidden">${cpsT("lockForgotPin", settings.lang)}</button>
+        <div id="wps-lock-reset" class="wps-hidden">
+          <p id="wps-lock-reset-hint">${cpsT("lockResetHint", settings.lang)}</p>
+          <textarea id="wps-lock-reset-input" rows="3" spellcheck="false" autocomplete="off"></textarea>
+          <div id="wps-lock-reset-actions">
+            <button type="button" id="wps-lock-reset-cancel">${cpsT("pinCancel", settings.lang)}</button>
+            <button type="button" id="wps-lock-reset-ok">${cpsT("pinConfirm", settings.lang)}</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const keypad = overlay.querySelector("#wps-lock-keypad");
+    for (const key of LOCK_KEYS) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "wps-lock-key";
+      btn.dataset.key = key;
+      btn.textContent = key === "del" ? "⌫" : key === "ok" ? "✓" : key;
+      if (key === "del" || key === "ok") btn.classList.add("wps-lock-key-alt");
+      keypad.appendChild(btn);
+    }
+
+    keypad.addEventListener("click", (e) => {
+      const btn = e.target.closest(".wps-lock-key");
+      if (btn) handleLockKey(btn.dataset.key);
+    });
+
+    overlay.querySelector("#wps-lock-forgot").addEventListener("click", () => showLockResetView(true));
+    overlay.querySelector("#wps-lock-reset-cancel").addEventListener("click", () => showLockResetView(false));
+    overlay.querySelector("#wps-lock-reset-ok").addEventListener("click", submitLockReset);
+
+    document.body.appendChild(overlay);
+    renderLockDots();
+    refreshForgotVisibility();
+  }
+
+  // El enlace aparece recién tras varios fallos: no conviene anunciar la salida
+  // antes de que haga falta.
+  async function refreshForgotVisibility() {
+    lockForgotVisible = (await cpsPinFailCount()) >= LOCK_FORGOT_AFTER_FAILS;
+    const btn = document.getElementById("wps-lock-forgot");
+    const resetOpen = !document.getElementById("wps-lock-reset")?.classList.contains("wps-hidden");
+    btn?.classList.toggle("wps-hidden", !lockForgotVisible || resetOpen);
+  }
+
+  function showLockResetView(show) {
+    // "Ingresa tu PIN para continuar" estorba cuando lo que se pide es la
+    // licencia; el texto de la vista de restablecer lo reemplaza.
+    document.getElementById("wps-lock-sub")?.classList.toggle("wps-hidden", show);
+    document.getElementById("wps-lock-dots")?.classList.toggle("wps-hidden", show);
+    document.getElementById("wps-lock-keypad")?.classList.toggle("wps-hidden", show);
+    document.getElementById("wps-lock-reset")?.classList.toggle("wps-hidden", !show);
+    document.getElementById("wps-lock-forgot")?.classList.toggle("wps-hidden", show || !lockForgotVisible);
+    showLockError("");
+
+    const input = document.getElementById("wps-lock-reset-input");
+    if (input) {
+      input.value = "";
+      if (show) input.focus();
+    }
+  }
+
+  async function submitLockReset() {
+    const value = document.getElementById("wps-lock-reset-input")?.value || "";
+    const license = await cpsProVerifyCode(value);
+
+    // No basta con que la firma sea válida: tiene que ser la misma licencia que
+    // activó esta instalación, o la de otro comprador abriría este candado.
+    if (!license || license.serial === null || license.serial !== proSerial) {
+      showLockError(cpsT("lockResetInvalid", settings.lang));
+      shakeLockCard();
+      return;
+    }
+
+    await cpsPinClear();
+    pinConfigured = false;
+    settings.pinLockEnabled = false;
+    saveSettings();
+    unlockNow();
+    updatePanelUI();
+  }
+
+  function handleLockKey(key) {
+    if (document.getElementById("wps-lock-keypad")?.classList.contains("disabled")) return;
+
+    if (key === "ok") {
+      submitLockPin();
+      return;
+    }
+    if (key === "del") {
+      lockEntry = lockEntry.slice(0, -1);
+    } else if (lockEntry.length < CPS_PIN_MAX) {
+      lockEntry += key;
+    }
+    renderLockDots();
+    // Autoenvío al completar la longitud guardada: en el caso normal no hace
+    // falta pulsar ✓.
+    if (lockEntry.length === lockPinLength) submitLockPin();
+  }
+
+  function renderLockDots() {
+    const wrap = document.getElementById("wps-lock-dots");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    for (let i = 0; i < lockPinLength; i++) {
+      const dot = document.createElement("span");
+      dot.className = i < lockEntry.length ? "wps-lock-dot filled" : "wps-lock-dot";
+      wrap.appendChild(dot);
+    }
+  }
+
+  async function submitLockPin() {
+    const entry = lockEntry;
+    lockEntry = "";
+    renderLockDots();
+    if (!entry) return;
+
+    if ((await cpsPinCooldownLeft()) > 0) {
+      refreshLockCooldown();
+      return;
+    }
+
+    if (await cpsPinVerify(entry)) {
+      await cpsPinResetFails();
+      unlockNow();
+      return;
+    }
+
+    await cpsPinRegisterFail();
+    showLockError(cpsT("pinWrong", settings.lang));
+    shakeLockCard();
+    refreshLockCooldown();
+    refreshForgotVisibility();
+  }
+
+  function showLockError(text) {
+    const el = document.getElementById("wps-lock-error");
+    if (el) el.textContent = text;
+  }
+
+  function shakeLockCard() {
+    const card = document.getElementById("wps-lock-card");
+    if (!card) return;
+    card.classList.remove("wps-lock-shake");
+    void card.offsetWidth; // fuerza reflow para reiniciar la animación
+    card.classList.add("wps-lock-shake");
+  }
+
+  function refreshLockCooldown() {
+    clearInterval(lockCooldownTimer);
+    lockCooldownTimer = null;
+    let wasCooling = false;
+
+    const tick = async () => {
+      if (!document.getElementById("wps-lock-overlay")) {
+        clearInterval(lockCooldownTimer);
+        lockCooldownTimer = null;
+        return;
+      }
+      const left = await cpsPinCooldownLeft();
+      document.getElementById("wps-lock-keypad")?.classList.toggle("disabled", left > 0);
+
+      if (left > 0) {
+        wasCooling = true;
+        showLockError(`${cpsT("lockCooldown", settings.lang)} ${left}${cpsT("lockSeconds", settings.lang)}`);
+        return;
+      }
+      if (wasCooling) showLockError("");
+      clearInterval(lockCooldownTimer);
+      lockCooldownTimer = null;
+    };
+
+    lockCooldownTimer = setInterval(tick, 1000);
+    tick();
+  }
+
+  // Mientras está bloqueado el teclado es del overlay: WhatsApp no debe recibir
+  // nada, ni atajos ni texto que termine en el compositor.
+  window.addEventListener("keydown", (e) => {
+    if (!isLocked) return;
+    e.stopImmediatePropagation();
+
+    // El campo de la licencia necesita escribir y pegar con normalidad; se le
+    // deja el evento, pero sin dejar que llegue a WhatsApp.
+    if (e.target?.id === "wps-lock-reset-input") return;
+
+    e.preventDefault();
+    if (/^[0-9]$/.test(e.key)) handleLockKey(e.key);
+    else if (e.key === "Backspace") handleLockKey("del");
+    else if (e.key === "Enter") handleLockKey("ok");
+  }, true);
+
+  // Se arma sin esperar al evento load: WhatsApp tarda segundos en pintar sus
+  // chats y el overlay tiene que ganarle a eso.
+  async function armLockOnLoad() {
+    const data = await cpsStorageGet(STORAGE_KEY);
+    if (data[STORAGE_KEY]) settings = { ...defaults, ...data[STORAGE_KEY] };
+    await refreshProState();
+    if (pinLockArmed()) lockNow();
+  }
 
   // ---- Init ----
   function init() {
@@ -1560,5 +1861,7 @@
     injectStatusDownloadButton();
   });
   observer.observe(document.body, { childList: true, subtree: true });
+
+  armLockOnLoad();
 
 })();

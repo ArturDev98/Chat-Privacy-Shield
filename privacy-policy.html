@@ -48,7 +48,7 @@
   <div class="container">
     <div class="badge">🛡 Chat Privacy Shield</div>
     <h1>Privacy Policy</h1>
-    <p class="subtitle">Last updated: June 2026 · Effective immediately upon installation</p>
+    <p class="subtitle">Last updated: September 2026 · Effective immediately upon installation</p>
 
     <div class="highlight">
       <p><strong>Short version:</strong> Chat Privacy Shield does not collect, store, transmit, or share any personal data. Everything stays on your device.</p>
@@ -60,11 +60,14 @@
 
     <h2>2. Local Storage Only</h2>
     <p>Your preferences (blur level, enabled features, panel visibility) are saved exclusively using <code>chrome.storage.local</code>. This means your settings are stored locally on your device and are never transmitted to any external server — not to us, not to Google, not to anyone.</p>
-    <p>This data is limited to extension settings and contains no personally identifiable information.</p>
+    <p>If you enable the optional PIN Lock feature, two more items are stored in the same local storage:</p>
+    <p><strong>Your PIN</strong> — stored only as a PBKDF2-SHA256 hash with a random salt, never in plain text. It cannot be read or recovered by anyone, including us, and it is never included when you export your settings.</p>
+    <p><strong>Your Pro license</strong> — the license string you paste in. It is verified on your device using a signature check against a public key bundled with the extension. Activating a license does not contact any server. The license contains a one-way hash of the email address used to purchase it, which stays on your device and is never transmitted.</p>
+    <p>All of this stays on your device and is never sent anywhere.</p>
 
     <h2>3. Permissions Explained</h2>
     <p><strong>storage</strong> — Required to remember your privacy settings between browser sessions. Data stays on your device only.</p>
-    <p><strong>commands</strong> — Required to register keyboard shortcuts (Ctrl+Shift+H, Ctrl+Shift+K). No keylogging is performed; Chrome handles this natively.</p>
+    <p><strong>commands</strong> — Required to register keyboard shortcuts (Ctrl+Shift+H, Ctrl+Shift+K, Ctrl+Shift+L). No keylogging is performed; Chrome handles this natively.</p>
     <p><strong>host_permissions (web.whatsapp.com)</strong> — Required to inject the visual blur/hide CSS into WhatsApp Web. The extension only reads the DOM to apply visual filters and does not read, parse, or transmit message content.</p>
 
     <h2>4. Third-Party Services</h2>
