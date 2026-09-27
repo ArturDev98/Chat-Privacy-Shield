@@ -19,7 +19,10 @@ const defaults = {
   scheduleEnd: "17:00",
   blurOnTabHidden: false,
   hideHeaderAvatar: false,
+  hideTabCount: false,
   pinLockEnabled: false,
+  autoLockMinutes: 0,
+  lockOnTabHidden: false,
   lang: "en",
 };
 
@@ -55,6 +58,23 @@ function applyTranslations() {
   });
 
   document.getElementById("lang-toggle").textContent = lang.toUpperCase();
+  renderAutoLockOptions();
+}
+
+// Las opciones salen de pro.js, que es lo mismo que acepta content.js.
+function renderAutoLockOptions() {
+  const select = document.getElementById("auto-lock-minutes");
+  const values = [0, ...CPS_AUTO_LOCK_MINUTES];
+  select.innerHTML = "";
+  for (const minutes of values) {
+    const option = document.createElement("option");
+    option.value = String(minutes);
+    option.textContent = minutes
+      ? `${minutes} ${cpsT("minutesShort", settings.lang)}`
+      : cpsT("autoLockOff", settings.lang);
+    select.appendChild(option);
+  }
+  select.value = String(cpsAutoLockMinutes(settings.autoLockMinutes));
 }
 
 function updateUI() {
@@ -79,6 +99,8 @@ function updateUI() {
   document.getElementById("schedule-times").classList.toggle("disabled", !settings.scheduleEnabled);
   document.getElementById("toggle-blur-tab-hidden").checked = settings.blurOnTabHidden;
   document.getElementById("toggle-hide-header-avatar").checked = settings.hideHeaderAvatar;
+  document.getElementById("toggle-hide-tab-count").checked = settings.hideTabCount;
+  document.getElementById("toggle-lock-tab-hidden").checked = settings.lockOnTabHidden;
   applyTranslations();
   updateProUI();
 }
@@ -150,6 +172,11 @@ document.getElementById("toggle-blur-tab-hidden").addEventListener("change", (e)
 
 document.getElementById("toggle-hide-header-avatar").addEventListener("change", (e) => {
   settings.hideHeaderAvatar = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-hide-tab-count").addEventListener("change", (e) => {
+  settings.hideTabCount = e.target.checked;
   saveAndSync();
 });
 
@@ -284,8 +311,14 @@ function updateProUI() {
   const toggle = document.getElementById("toggle-pin-lock");
   if (!toggle) return;
 
-  toggle.checked = proActive && pinSet && settings.pinLockEnabled;
+  const armed = proActive && pinSet && settings.pinLockEnabled;
+  toggle.checked = armed;
   toggle.disabled = !proActive;
+
+  // Visibles aunque no apliquen, para que se vea lo que trae Pro.
+  document.getElementById("pin-auto").classList.toggle("disabled", !armed);
+  document.getElementById("auto-lock-minutes").disabled = !armed;
+  document.getElementById("toggle-lock-tab-hidden").disabled = !armed;
 
   document.getElementById("pro-box").style.display = proActive ? "none" : "flex";
   document.getElementById("pro-active-box").style.display = proActive ? "flex" : "none";
@@ -419,6 +452,17 @@ document.getElementById("toggle-pin-lock").addEventListener("change", async (e) 
   saveAndSync();
   updateProUI();
   showPinStatus(cpsT("pinDisabled", settings.lang), false);
+});
+
+// Aflojar el bloqueo automático no pide PIN: no abre nada que ya esté bloqueado.
+document.getElementById("auto-lock-minutes").addEventListener("change", (e) => {
+  settings.autoLockMinutes = cpsAutoLockMinutes(e.target.value);
+  saveAndSync();
+});
+
+document.getElementById("toggle-lock-tab-hidden").addEventListener("change", (e) => {
+  settings.lockOnTabHidden = e.target.checked;
+  saveAndSync();
 });
 
 document.getElementById("change-pin-btn").addEventListener("click", async () => {

@@ -27,7 +27,10 @@
     hintPosition: null,
     blurOnTabHidden: false,
     hideHeaderAvatar: false,
+    hideTabCount: false,
     pinLockEnabled: false,
+    autoLockMinutes: 0,
+    lockOnTabHidden: false,
     lang: "en",
   };
 
@@ -165,6 +168,7 @@
     body.classList.toggle("wps-hide-typed", settings.hideTypedText);
     body.classList.toggle("wps-hide-subtitle", settings.hideChatSubtitle);
     body.classList.toggle("wps-hide-header-avatar", settings.hideHeaderAvatar);
+    body.classList.toggle("wps-hide-tab-count", settings.hideTabCount);
     // Si se desactiva hover reveal, limpiar items revelados que queden
     if (!settings.hoverReveal) {
       document.querySelectorAll(".wps-revealed").forEach(el => el.classList.remove("wps-revealed"));
@@ -181,6 +185,8 @@
     updateBadgeOverlays();
     updatePanelUI();
     scheduleAutoBlur();
+    applyTabCounter();
+    restartAutoLock();
   }
 
   // ---- Hover reveal: por item individual en listas de chats/llamadas ----
@@ -403,6 +409,13 @@
         </svg>
       </button>
 
+      <!-- Ocultar el contador de no leídos del título de la pestaña -->
+      <button class="wps-btn" id="wps-hide-tab-count" data-tip="${cpsT('panelTooltipHideTabCount', settings.lang)}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/><line x1="3" y1="3" x2="21" y2="21"/>
+        </svg>
+      </button>
+
       <!-- Bloquear ahora con PIN (Pro) -->
       <button class="wps-btn wps-hidden" id="wps-lock-now" data-tip="${cpsT('panelTooltipLockNow', settings.lang)}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -516,6 +529,12 @@
       saveSettings();
     });
 
+    document.getElementById("wps-hide-tab-count").addEventListener("click", () => {
+      settings.hideTabCount = !settings.hideTabCount;
+      applyState();
+      saveSettings();
+    });
+
     document.getElementById("wps-lock-now").addEventListener("click", () => {
       lockNow();
     });
@@ -552,6 +571,7 @@
     const hideSubtitleBtn = document.getElementById("wps-hide-subtitle");
     const blurTabHiddenBtn = document.getElementById("wps-blur-tab-hidden");
     const hideHeaderAvatarBtn = document.getElementById("wps-hide-header-avatar");
+    const hideTabCountBtn = document.getElementById("wps-hide-tab-count");
     const lockNowBtn = document.getElementById("wps-lock-now");
     const langBtn = document.getElementById("wps-lang");
     const pinBtn = document.getElementById("wps-pin");
@@ -569,6 +589,7 @@
     hideSubtitleBtn?.classList.toggle("active", settings.hideChatSubtitle);
     blurTabHiddenBtn?.classList.toggle("active", settings.blurOnTabHidden);
     hideHeaderAvatarBtn?.classList.toggle("active", settings.hideHeaderAvatar);
+    hideTabCountBtn?.classList.toggle("active", settings.hideTabCount);
 
     if (slider) slider.value = settings.blurLevel;
     sliderWrap?.classList.toggle("visible", settings.privacyActive);
@@ -587,6 +608,7 @@
     hideSubtitleBtn?.setAttribute("data-tip", cpsT("panelTooltipHideSubtitle", settings.lang));
     blurTabHiddenBtn?.setAttribute("data-tip", cpsT("panelTooltipBlurTabHidden", settings.lang));
     hideHeaderAvatarBtn?.setAttribute("data-tip", cpsT("panelTooltipHideHeaderAvatar", settings.lang));
+    hideTabCountBtn?.setAttribute("data-tip", cpsT("panelTooltipHideTabCount", settings.lang));
     pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
 
     // El candado solo aparece cuando hay Pro + PIN configurado + opción activa.
@@ -880,7 +902,10 @@
     }, AUTO_BLUR_DELAY_MS);
   }
 
-  ["mousemove", "keydown", "mousedown", "wheel", "touchstart"].forEach((evt) => {
+  // Lo que cuenta como actividad para el auto-difuminado y el bloqueo automático.
+  const ACTIVITY_EVENTS = ["mousemove", "keydown", "mousedown", "wheel", "touchstart"];
+
+  ACTIVITY_EVENTS.forEach((evt) => {
     document.addEventListener(evt, scheduleAutoBlur, { passive: true });
   });
 
@@ -919,7 +944,7 @@
   // Opciones que se activan por completo al arrancar la ventana
   // programada — así el usuario no tiene que haberlas configurado
   // manualmente de antemano para que el horario dé protección real.
-  const SCHEDULE_FULL_PRIVACY_KEYS = ["hideAvatars", "hideNames", "blurMain", "hideTypedText", "hideChatSubtitle", "hoverReveal", "showBadges"];
+  const SCHEDULE_FULL_PRIVACY_KEYS = ["hideAvatars", "hideNames", "blurMain", "hideTypedText", "hideChatSubtitle", "hideTabCount", "hoverReveal", "showBadges"];
 
   function checkSchedule() {
     if (!settings.scheduleEnabled) {
@@ -961,6 +986,98 @@
   });
 
   window.addEventListener("blur", triggerTabHiddenBlur);
+
+  // ---- Ocultar el contador de no leídos de la pestaña ----
+  // WhatsApp lo pone en el título ("(3) WhatsApp") y lo dibuja en el favicon;
+  // una pestaña fijada solo muestra el favicon.
+  const TITLE_COUNT_RE = /^\(\d+\)\s*/;
+  const ICON_SELECTOR = 'link[rel~="icon"]';
+  let waTitle = null; // último título que puso WhatsApp, con su contador
+  const waIconHrefs = new WeakMap(); // <link> → último href que le puso WhatsApp
+  const ownIconHrefs = new WeakMap(); // <link> → href que le puso la extensión
+
+  // Este script corre con WhatsApp aún en su pantalla de carga: el favicon
+  // todavía no lleva contador y sirve de versión limpia.
+  const cleanIconHref = TITLE_COUNT_RE.test(document.title)
+    ? null
+    : document.head.querySelector(ICON_SELECTOR)?.getAttribute("href") ?? null;
+
+  function tabCountHidden() {
+    return settings.privacyActive && settings.hideTabCount;
+  }
+
+  function applyTabTitle() {
+    const textNode = document.querySelector("head > title")?.firstChild;
+    if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
+    if (waTitle === null) waTitle = textNode.data;
+
+    const wanted = tabCountHidden() ? waTitle.replace(TITLE_COUNT_RE, "") : waTitle;
+    // Se edita el nodo de texto en vez de document.title: eso no genera un
+    // childList, y el observer sabe que cada childList es una escritura de WhatsApp.
+    if (textNode.data !== wanted) textNode.data = wanted;
+  }
+
+  function applyTabIcon() {
+    if (!cleanIconHref) return;
+    document.head.querySelectorAll(ICON_SELECTOR).forEach((link) => {
+      if (!waIconHrefs.has(link)) waIconHrefs.set(link, link.getAttribute("href"));
+
+      let wanted;
+      if (tabCountHidden()) {
+        wanted = cleanIconHref;
+        ownIconHrefs.set(link, wanted);
+      } else if (ownIconHrefs.has(link)) {
+        // Si WhatsApp escribió el mismo href que el nuestro no se vio; el título
+        // dice si hoy toca el favicon con contador o el limpio.
+        wanted = TITLE_COUNT_RE.test(waTitle ?? "") ? waIconHrefs.get(link) : cleanIconHref;
+        ownIconHrefs.delete(link);
+      } else {
+        return; // nunca se tocó: es de WhatsApp tal cual
+      }
+      if (wanted && link.getAttribute("href") !== wanted) link.setAttribute("href", wanted);
+    });
+  }
+
+  function applyTabCounter() {
+    applyTabTitle();
+    applyTabIcon();
+  }
+
+  // El número sobre el ícono de Chats es un [role="status"] dentro de la barra
+  // de navegación (confirmado via consola). Solo se marcan los que muestran un
+  // número: los puntos verdes de Estados y Canales se quedan como están.
+  const NAV_COUNT_SELECTOR = '[data-testid="navbar-primary-section"] [role="status"]';
+
+  function markNavCounts() {
+    document.querySelectorAll(NAV_COUNT_SELECTOR).forEach((el) => {
+      el.classList.toggle("wps-nav-count", /^\d+\+?$/.test(el.textContent.trim()));
+    });
+  }
+
+  // document.title = x reemplaza el nodo de texto del <title> (o el <title>
+  // entero), así que basta con childList para el título; el favicon cambia de
+  // href o se reemplaza el <link> entero.
+  new MutationObserver((records) => {
+    let changed = false;
+    for (const r of records) {
+      if (r.target.nodeName === "TITLE" || [...r.addedNodes].some((n) => n.nodeName === "TITLE")) {
+        waTitle = document.querySelector("head > title")?.textContent ?? null;
+        changed = true;
+      }
+      for (const n of r.addedNodes) {
+        if (n.matches?.(ICON_SELECTOR)) {
+          waIconHrefs.set(n, n.getAttribute("href"));
+          changed = true;
+        }
+      }
+      if (r.type === "attributes" && r.target.matches(ICON_SELECTOR)) {
+        const href = r.target.getAttribute("href");
+        if (href !== ownIconHrefs.get(r.target)) waIconHrefs.set(r.target, href);
+        changed = true;
+      }
+    }
+    if (changed) applyTabCounter();
+  }).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["href"] });
 
   // ---- Hover sobre la conversación activa (#main) ----
   // Delegado en `document` en vez de atado al nodo #main puntual
@@ -1030,6 +1147,9 @@
       // candado: solo el PIN correcto lo levanta.
       if (isLocked) incoming.pinLockEnabled = settings.pinLockEnabled;
       settings = { ...settings, ...incoming };
+      // Tocar el popup es actividad: sin esto, bajar el plazo desde ahí podía
+      // bloquear en el acto.
+      if (!isLocked) lastActivityAt = Date.now();
       applyState();
     }
   });
@@ -1163,11 +1283,72 @@
     // Si se pierde el Pro o se borra el PIN, no puede quedar nadie encerrado.
     if (isLocked && !(proActive && pinConfigured)) unlockNow();
     updatePanelUI();
+    restartAutoLock();
   }
 
   function pinLockArmed() {
     return proActive && pinConfigured && settings.pinLockEnabled;
   }
+
+  // ---- Bloqueo automático (Pro) ----
+  // Por inactividad o al ocultarse la pestaña. Se cuenta con una marca de
+  // tiempo y no solo con el timer: en segundo plano Chrome retrasa los timers
+  // hasta un minuto, y con el equipo suspendido no corren.
+  let lastActivityAt = Date.now();
+  let autoLockTimer = null;
+
+  function autoLockDelayMs() {
+    return cpsAutoLockMinutes(settings.autoLockMinutes) * 60000;
+  }
+
+  function autoLockActive() {
+    return autoLockDelayMs() > 0 && pinLockArmed() && !isLocked;
+  }
+
+  function autoLockDue() {
+    return autoLockActive() && Date.now() - lastActivityAt >= autoLockDelayMs();
+  }
+
+  // El timer no se reinicia en cada mousemove: al vencer mira la última
+  // actividad y, si hubo, se reprograma por lo que falta.
+  function autoLockTick() {
+    autoLockTimer = null;
+    if (!autoLockActive()) return;
+    const left = lastActivityAt + autoLockDelayMs() - Date.now();
+    if (left > 0) autoLockTimer = setTimeout(autoLockTick, left);
+    else lockNow();
+  }
+
+  function restartAutoLock() {
+    clearTimeout(autoLockTimer);
+    autoLockTimer = null;
+    autoLockTick();
+  }
+
+  function noteActivity() {
+    if (isLocked) return;
+    // Si el plazo venció sin que el timer llegara a correr, la actividad no lo salva.
+    if (autoLockDue()) {
+      lockNow();
+      return;
+    }
+    lastActivityAt = Date.now();
+    if (!autoLockTimer) autoLockTick();
+  }
+
+  ACTIVITY_EVENTS.forEach((evt) => {
+    document.addEventListener(evt, noteActivity, { passive: true });
+  });
+
+  // Solo visibilitychange, no window blur: blur también salta al abrir el
+  // popup de la extensión, y bloquearía justo al ir a cambiar un ajuste.
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (settings.lockOnTabHidden) lockNow();
+    } else if (autoLockDue()) {
+      lockNow();
+    }
+  });
 
   function lockNow() {
     if (!pinLockArmed() || isLocked) return;
@@ -1186,6 +1367,9 @@
     lockCooldownTimer = null;
     document.body.classList.remove("wps-locked");
     document.getElementById("wps-lock-overlay")?.remove();
+    // Sin esto el plazo seguiría vencido y volvería a bloquear al instante.
+    lastActivityAt = Date.now();
+    restartAutoLock();
   }
 
   const LOCK_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0", "ok"];
@@ -1859,6 +2043,8 @@
     }
     // El visor de estados se remonta cada vez que se abre uno nuevo
     injectStatusDownloadButton();
+    // El contador del menú lateral se monta de nuevo al pasar de 0 a 1 no leído
+    markNavCounts();
   });
   observer.observe(document.body, { childList: true, subtree: true });
 

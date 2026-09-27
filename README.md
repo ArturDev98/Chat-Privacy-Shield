@@ -33,7 +33,9 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 📥 **Donwload Status** | Donwload statuses (Images or videos) |
 | 👁️ **Auto-Blur** | Auto-blur due to inactivity |
 | 🥷🏽 **Hidden online/last seen** | Hide online status, last seen, or typing status |
+| #️⃣ **Hide unread counter** | Hide the "(3)" in the tab title, the number on the tab icon (pinned tabs too) and the one on the Chats icon in the left menu while privacy is on |
 | 🔒 **PIN Lock** ⭐ | Full lock screen — WhatsApp Web asks for your PIN every time it opens |
+| ⏱ **Auto-lock** ⭐ | Lock with PIN after 1–30 min of inactivity, or as soon as you leave the tab |
 
 ⭐ = Pro feature. See [Pro](#pro).
 
@@ -68,11 +70,20 @@ Until published to the Chrome Web Store:
 
 ## Pro
 
-Everything listed above is free except **PIN Lock**, which is the first Pro feature.
+Everything listed above is free except **PIN Lock** and its **Auto-lock** options.
 
 **What it does**
 
 A full lock screen covers WhatsApp Web every time the page opens or reloads. Nothing is readable until the right PIN is entered. You can also lock on demand with `Ctrl+Shift+L` or the padlock in the floating panel.
+
+**Auto-lock**
+
+Once PIN Lock is on, the popup offers two more triggers:
+
+- **Auto-lock when idle** — after 1, 5, 15 or 30 minutes with no mouse, keyboard or scroll activity inside WhatsApp Web. Working in another tab counts as idle for WhatsApp.
+- **Lock when leaving the tab** — locks the moment you switch tabs or minimize the window, so the lock screen is already up when you come back.
+
+Opening the extension popup doesn't count as leaving, so you can change settings without locking yourself out.
 
 **How to activate**
 

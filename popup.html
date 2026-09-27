@@ -382,6 +382,28 @@
       color: rgba(255,255,255,0.35);
     }
 
+    .pin-auto .row {
+      gap: 10px;
+    }
+
+    .pin-auto.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .pin-select {
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: #e9edef;
+      padding: 4px 6px;
+      font-size: 11.5px;
+      font-family: inherit;
+      color-scheme: dark;
+      cursor: pointer;
+    }
+
     .pin-actions {
       display: flex;
       gap: 8px;
@@ -761,6 +783,20 @@
         <div class="toggle-thumb"></div>
       </label>
     </div>
+
+    <div class="row">
+      <div class="row-label">
+        <div class="row-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+        </div>
+        <span data-i18n="hideTabCount">Hide unread count on tab and sidebar</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-hide-tab-count">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
   </div>
 
   <div class="shortcuts">
@@ -829,6 +865,21 @@
     </div>
 
     <p class="pin-hint" id="pin-hint" data-i18n="pinLockHint">Ask for a PIN every time WhatsApp Web opens.</p>
+
+    <div class="pin-auto" id="pin-auto">
+      <div class="row">
+        <span class="row-label" data-i18n="autoLockIdle">Auto-lock when idle</span>
+        <select id="auto-lock-minutes" class="pin-select"></select>
+      </div>
+      <div class="row">
+        <span class="row-label" data-i18n="lockOnTabHidden">Lock when leaving the tab</span>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-lock-tab-hidden">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+    </div>
 
     <div class="pin-actions" id="pin-actions" style="display:none;">
       <button type="button" id="change-pin-btn" class="mini-btn" data-i18n="pinChange">Change PIN</button>

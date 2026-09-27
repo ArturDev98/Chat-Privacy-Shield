@@ -210,6 +210,13 @@ body.wps-active.wps-hide-header-avatar.wps-header-hovered #main header img {
   filter: blur(0px) !important;
 }
 
+/* Contador del menú lateral: content.js marca con .wps-nav-count solo los
+   [role="status"] de la barra que muestran un número. Se oculta sin quitarle
+   su hueco para que los íconos no se muevan. */
+body.wps-active.wps-hide-tab-count .wps-nav-count {
+  visibility: hidden !important;
+}
+
 /* ---- Panel flotante UI ---- */
 #wps-panel {
   position: fixed;

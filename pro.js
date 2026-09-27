@@ -36,6 +36,15 @@ const CPS_PIN_MAX = 6;
 // El último valor se repite de ahí en adelante.
 const CPS_PIN_COOLDOWNS = [0, 0, 0, 0, 30, 60, 300];
 
+// Minutos de inactividad que ofrece el bloqueo automático; 0 = apagado.
+const CPS_AUTO_LOCK_MINUTES = [1, 5, 15, 30];
+
+// Un valor importado a mano puede traer cualquier cosa: solo pasan los ofrecidos.
+function cpsAutoLockMinutes(value) {
+  const minutes = Number(value);
+  return CPS_AUTO_LOCK_MINUTES.includes(minutes) ? minutes : 0;
+}
+
 // ---- Utilidades ----
 
 function cpsBufToHex(buf) {
