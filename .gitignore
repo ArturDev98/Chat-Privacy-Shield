@@ -3,3 +3,6 @@
 *.jwk
 *.pem
 licenses.csv
+
+# Paquetes generados para la Chrome Web Store.
+dist/
