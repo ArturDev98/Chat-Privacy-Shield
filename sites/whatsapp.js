@@ -182,35 +182,40 @@ function cpsCreateSite(core) {
   }
 
   // ---- Descargar estados (fotos y videos) ----
-  function findStatusMenuButton() {
+
+  // Partes de WhatsApp que nunca son el visor de estados. El header de chats
+  // tiene su propio ⋮ y no puede servir de ancla.
+  const OUTSIDE_STATUS_VIEWER = '#pane-side, #main, [data-testid="status-drawer"], [data-testid="navbar-primary-section"]';
+
+  // Sube desde el estado hasta justo antes del ancestro que ya abarca otra
+  // parte de WhatsApp: los botones del visor se buscan solo ahí dentro.
+  function statusViewerRoot(content) {
+    const outside = [...document.querySelectorAll(OUTSIDE_STATUS_VIEWER)];
+    let root = content;
+    while (root.parentElement && root.parentElement !== document.body) {
+      const parent = root.parentElement;
+      if (outside.some((el) => parent.contains(el))) break;
+      root = parent;
+    }
+    return root;
+  }
+
+  function findStatusMenuButton(root) {
     // Se ancla al <title> "ic-more-vert" del ícono y no al aria-label ("Menú"),
     // que cambia con el idioma de WhatsApp.
-    return findButtonByIconTitle((name) => name === "ic-more-vert");
+    return findButtonByIconTitle(root, (name) => name === "ic-more-vert");
   }
 
-  function findStatusPlayButton() {
+  function findStatusPlayButton(root) {
     // Solo existe en estados de video; en fotos queda el menú como respaldo.
-    return findButtonByIconTitle((name) => name.startsWith("ic-play") || name.startsWith("ic-pause"));
+    return findButtonByIconTitle(root, (name) => name.startsWith("ic-play") || name.startsWith("ic-pause"));
   }
 
-  // El header de la lista de chats también usa "ic-more-vert"; "new-chat-outline"
-  // (confirmado real) es exclusivo de ese header y lo delata.
-  function isInsideChatListHeader(btn) {
-    let el = btn;
-    for (let i = 0; i < 6 && el; i++) {
-      if (el.querySelector?.('[data-testid="new-chat-outline"]')) return true;
-      el = el.parentElement;
-    }
-    return false;
-  }
-
-  function findButtonByIconTitle(matches) {
-    const titles = document.querySelectorAll("svg title");
-    for (const t of titles) {
+  function findButtonByIconTitle(root, matches) {
+    for (const t of root.querySelectorAll("svg title")) {
       if (!matches(t.textContent || "")) continue;
       const btn = t.closest("button");
-      if (!btn) continue;
-      if (isInsideChatListHeader(btn)) continue;
+      if (!btn || !root.contains(btn)) continue;
       const rect = btn.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) continue;
       return btn;
@@ -392,9 +397,11 @@ function cpsCreateSite(core) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  // Sin flecha en el visor es el último estado; fuera de él podría ser otra pantalla.
   function findNextStatusButton() {
-    // Dejar de avanzar en último estado
-    return findButtonByIconTitle((name) => name === "ic-chevron-right");
+    const content = getActiveStatusContent();
+    if (!content) return null;
+    return findButtonByIconTitle(statusViewerRoot(content), (name) => name === "ic-chevron-right");
   }
 
   async function downloadAllStatuses() {
@@ -444,23 +451,29 @@ function cpsCreateSite(core) {
     return btn;
   }
 
+  function getActiveStatusContent() {
+    return getActiveStatusMedia() || findActiveTextStatus();
+  }
+
   function injectStatusDownloadButton() {
-    // Validar que exista un estado activo (foto/video o texto) antes de inyectar el botón
-    if (!getActiveStatusMedia() && !findActiveTextStatus()) return;
+    const content = getActiveStatusContent();
+    if (!content) return;
+    const root = statusViewerRoot(content);
 
     // El visor nativo ya trae descarga en fotos/videos (no en texto); si se ve, no se duplica.
-    const nativeDownloadBtn = document.querySelector('[data-testid="ic-download"]');
+    const nativeDownloadBtn = root.querySelector('[data-testid="ic-download"]');
     if (nativeDownloadBtn) {
       const rect = nativeDownloadBtn.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) return;
     }
 
-    const playBtn = findStatusPlayButton();
-    const menuBtn = findStatusMenuButton();
+    const playBtn = findStatusPlayButton(root);
+    const menuBtn = findStatusMenuButton(root);
     const anchorBtn = playBtn || menuBtn;
     if (!anchorBtn) return;
 
-    const wrapper = anchorBtn.closest("span.html-span") || anchorBtn.parentElement;
+    const htmlSpan = anchorBtn.closest("span.html-span");
+    const wrapper = htmlSpan && root.contains(htmlSpan) ? htmlSpan : anchorBtn.parentElement;
     if (!wrapper || wrapper._wpsDownloadInjected) return;
     wrapper._wpsDownloadInjected = true;
 
