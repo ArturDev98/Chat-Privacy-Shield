@@ -2,7 +2,7 @@
   "use strict";
 
   // =============================================
-  //  WhatsApp Privacy Shield - Content Script
+  //  Chat Privacy Shield - núcleo del content script
   // =============================================
 
   const STORAGE_KEY = "wps_settings";
@@ -51,6 +51,13 @@
   // Fallos tras los que se ofrece restablecer con la licencia: se muestra justo
   // antes del primer enfriamiento, cuando ya se ve que el PIN no sale.
   const LOCK_FORGOT_AFTER_FAILS = 3;
+
+  // Lo que depende del DOM del sitio (selectores, secciones propias) llega del
+  // adaptador cargado antes que este archivo: sites/<sitio>.js.
+  const site = cpsCreateSite({
+    getSettings: () => settings,
+    bindHoverContainer,
+  });
 
   // ---- Cargar settings desde chrome.storage ----
   function loadSettings(cb) {
@@ -191,28 +198,8 @@
 
   // ---- Hover reveal: por item individual en listas de chats/llamadas ----
 
-  // Selector real del contenedor de cada fila (confirmado via consola). Lo
-  // usan por igual la lista de chats, la de archivados y la de Llamadas —
-  // las tres reutilizan el mismo componente de lista de WhatsApp.
-  const HOVER_ITEM_SELECTOR = '[data-testid^="list-item-"]';
-
-  // El drawer de Favoritos (Llamadas > "Ver todos los favoritos") NO usa esas
-  // filas: cada contacto es una tarjeta [data-testid="cell-frame-container"]
-  // suelta, sin list-item-N alrededor.
-  const HOVER_CARD_SELECTOR = '[data-testid="cell-frame-container"]';
-
-  // La fila list-item-N manda cuando existe — es la que esperan las reglas de
-  // CSS de chats/archivados/Llamadas, y en otras vistas la tarjeta puede ir
-  // anidada dentro de ella (closest devolvería la interna y el nombre se
-  // quedaría difuminado). La tarjeta suelta es solo el respaldo.
-  function findHoverItem(target) {
-    if (!target || !target.closest) return null;
-    return target.closest(HOVER_ITEM_SELECTOR) || target.closest(HOVER_CARD_SELECTOR);
-  }
-
-  // Engancha el revelado por hover a un contenedor con scroll. Se marca el
-  // elemento con _wpsHoverBound para no duplicar listeners si se vuelve a
-  // pasar por aquí (el observer puede llamar varias veces).
+  // Engancha el revelado por hover a un contenedor con scroll; _wpsHoverBound
+  // evita duplicar listeners cuando el observer vuelve a pasar por aquí.
   function bindHoverContainer(container) {
     if (!container || container._wpsHoverBound) return;
     container._wpsHoverBound = true;
@@ -223,7 +210,7 @@
 
     container.addEventListener("mouseover", (e) => {
       if (!settings.hoverReveal) return;
-      const item = findHoverItem(e.target);
+      const item = site.hoverItem(e.target);
       if (item && !item.classList.contains("wps-revealed")) {
         item.classList.add("wps-revealed");
         scheduleBadgeRefresh();
@@ -232,7 +219,7 @@
 
     container.addEventListener("mouseout", (e) => {
       if (!settings.hoverReveal) return;
-      const item = findHoverItem(e.target);
+      const item = site.hoverItem(e.target);
       if (item) {
         const related = e.relatedTarget;
         if (!item.contains(related)) {
@@ -240,53 +227,6 @@
           scheduleBadgeRefresh();
         }
       }
-    });
-  }
-
-  function setupHoverReveal() {
-    // IMPORTANTE: al abrir la pestaña de Llamadas, WhatsApp monta un SEGUNDO
-    // elemento con id="pane-side" dentro de [data-testid="calls-tab-drawer"]
-    // — id duplicado en el documento, confirmado inspeccionando el DOM. El
-    // CSS sí difumina ambos (un selector #pane-side matchea todos), pero
-    // getElementById devuelve solo el primero (el de chats), así que la
-    // lista de llamadas quedaba difuminada y sin forma de revelarse al pasar
-    // el cursor. Por eso se recorren TODOS con querySelectorAll.
-    document.querySelectorAll("#pane-side").forEach(bindHoverContainer);
-
-    // Los tres se montan dinámicamente al entrar a su sección
-    bindArchivedChatlist();
-    bindCallsDrawer();
-    bindFavoritesDrawer();
-  }
-
-  // ---- Enlazar archived-chatlist cuando aparece en el DOM ----
-  function bindArchivedChatlist() {
-    bindHoverContainer(document.querySelector('[data-testid="archived-chatlist"]'));
-  }
-
-  // ---- Enlazar la lista de Llamadas cuando aparece en el DOM ----
-  function bindCallsDrawer(retries = 10) {
-    const drawer = document.querySelector('[data-testid="calls-tab-drawer"]');
-    if (!drawer) return;
-
-    // La lista vive en un #pane-side propio dentro del drawer. Si el drawer
-    // ya está montado pero su lista todavía no, se reintenta un rato corto
-    // en vez de perder el enganche.
-    const pane = drawer.querySelector("#pane-side");
-    if (pane) {
-      bindHoverContainer(pane);
-    } else if (retries > 0) {
-      setTimeout(() => bindCallsDrawer(retries - 1), 200);
-    }
-  }
-
-  // ---- Enlazar el drawer de Favoritos cuando aparece en el DOM ----
-  function bindFavoritesDrawer() {
-    document.querySelectorAll('[data-testid="favorites-drawer"]').forEach((el) => {
-      // WhatsApp anida dos elementos con este mismo data-testid; basta con el
-      // externo, los eventos de los contactos burbujean hasta él.
-      if (el.parentElement?.closest('[data-testid="favorites-drawer"]')) return;
-      bindHoverContainer(el);
     });
   }
 
@@ -639,11 +579,7 @@
   }
 
   // ---- Badge de no leídos: overlay que "escapa" del blur del item ----
-  // Un elemento hijo no puede des-difuminarse a sí mismo si su ancestro
-  // tiene `filter: blur()` (el filtro se aplica sobre todo el subárbol ya
-  // renderizado). Por eso, en vez de intentar levantar el blur en el badge
-  // original, se clona y se posiciona como overlay fuera del árbol difuminado.
-  const BADGE_SELECTOR = '[data-testid="icon-unread-count"]';
+  // Un hijo no puede quitarse el blur de un ancestro: se clona fuera del árbol difuminado.
   let badgeLoopId = null;
   let badgeRefreshScheduled = false;
 
@@ -717,49 +653,34 @@
       return;
     }
 
-    const items = document.querySelectorAll(
-      `#pane-side [data-testid^="list-item-"], [data-testid="archived-chatlist"] [data-testid^="list-item-"]`
-    );
+    const items = document.querySelectorAll(site.badgeItemSelector);
 
     let found = false;
     items.forEach((item) => {
-      // Las filas de Estados reutilizan el mismo contenedor "list-item-N"
-      // que las filas de chat, pero tienen adentro este marcador exclusivo
-      // — confirmado inspeccionando el DOM. Si está presente, no es un
-      // chat real y el "contador" que pueda traer no debe des-difuminarse.
-      if (item.querySelector('[data-testid="status-row-cell"]')) {
+      if (site.skipBadgeItem(item)) {
         const staleClone = item._wpsBadgeClone;
         if (staleClone) staleClone.style.display = "none";
         return;
       }
 
       const existingClone = item._wpsBadgeClone;
-      const badge = item.querySelector(BADGE_SELECTOR);
+      const badge = item.querySelector(site.badgeSelector);
 
       if (!badge) {
-        // El badge ya no existe (se leyó el mensaje, por ejemplo) — si había
-        // un clon de una versión anterior, hay que ocultarlo también.
+        // Ya no hay contador (p. ej. se leyó el mensaje): se oculta el clon que quedara.
         if (existingClone) existingClone.style.display = "none";
         return;
       }
 
       const rect = badge.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) {
-        // Tamaño cero normalmente significa que el badge (o todo su
-        // contenedor, p.ej. el panel de chats completo) está oculto con
-        // `display:none` — WhatsApp mantiene la lista de chats montada en
-        // segundo plano al cambiar a Estados/Llamadas en vez de
-        // desmontarla, así que sin este chequeo el clon se queda
-        // "flotando" con la última posición conocida.
+        // La lista sigue montada pero oculta al cambiar de sección; sin esto el
+        // clon se queda flotando en su última posición.
         if (existingClone) existingClone.style.display = "none";
         return;
       }
 
-      // Aunque el badge tenga tamaño válido, puede seguir "vivo" pero
-      // tapado por otro panel encima (p.ej. Estados dibujado sobre la
-      // lista de chats que sigue montada detrás, sin destruirse). Se
-      // verifica qué elemento está realmente arriba en esas coordenadas;
-      // si no es el badge ni parte de su propio árbol, está tapado.
+      // Con tamaño válido aún puede estar tapado por otra sección dibujada encima.
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       const topElement = document.elementFromPoint(cx, cy);
@@ -779,11 +700,9 @@
         clone.textContent = badge.textContent;
       }
 
-      // Recortar contra el área visible real del panel de chats (#pane-side
-      // o archived-chatlist). Un clon vive en <body>, así que ignora por
-      // completo el `overflow` del contenedor con scroll — sin este chequeo,
-      // un item scrolleado fuera de vista seguiría "flotando" en pantalla.
-      const container = item.closest('#pane-side') || item.closest('[data-testid="archived-chatlist"]');
+      // El clon vive en <body> e ignora el overflow de la lista: sin recortar,
+      // un item fuera de vista seguiría flotando en pantalla.
+      const container = site.badgeClip(item);
       const clip = container ? container.getBoundingClientRect() : null;
       const withinBounds = !clip || (
         rect.top >= clip.top &&
@@ -792,9 +711,7 @@
         rect.right <= clip.right
       );
 
-      // Si el item ya está "revelado" (hover reveal activo y el mouse
-      // encima), el badge real ya es visible — mantener el clon también
-      // visible se ve como un contador duplicado.
+      // Revelado por hover, el badge real ya se ve: el clon sería un duplicado.
       const revealed = item.classList.contains("wps-revealed");
 
       if (!withinBounds || revealed) {
@@ -815,13 +732,8 @@
       if (!stillOwned) clone.remove();
     });
 
-    // El loop sigue vivo mientras la opción esté activa, sin importar si
-    // en este tick se encontró algún badge — si se detiene justo cuando
-    // no hay ninguno visible (p.ej. scrolleado a una zona vacía, o al
-    // cambiar a la pestaña de Estados/Llamadas), nunca volvería a
-    // ejecutarse para notar el cambio y limpiar los clones que quedaron
-    // huérfanos, dejándolos "flotando" sobre una vista que no es la lista
-    // de chats.
+    // El loop sigue aunque no haya badges visibles: si parara, nadie limpiaría
+    // los clones huérfanos al volver o cambiar de sección.
     startBadgeLoop();
   }
 
@@ -849,7 +761,7 @@
   }
 
   // ---- Ocultar texto escrito cuando el input del chat pierde el foco ----
-  const COMPOSE_INPUT_SELECTOR = '[data-testid="conversation-compose-box-input"]';
+  const COMPOSE_INPUT_SELECTOR = site.composeInputSelector;
 
   document.addEventListener("focusout", (e) => {
     if (!settings.privacyActive || !settings.hideTypedText) return;
@@ -988,12 +900,12 @@
   window.addEventListener("blur", triggerTabHiddenBlur);
 
   // ---- Ocultar el contador de no leídos de la pestaña ----
-  // WhatsApp lo pone en el título ("(3) WhatsApp") y lo dibuja en el favicon;
-  // una pestaña fijada solo muestra el favicon.
-  const TITLE_COUNT_RE = /^\(\d+\)\s*/;
+  // El sitio lo pone en el título y lo dibuja en el favicon; una pestaña
+  // fijada solo muestra el favicon.
+  const TITLE_COUNT_RE = site.titleCountRe;
   const ICON_SELECTOR = 'link[rel~="icon"]';
-  let waTitle = null; // último título que puso WhatsApp, con su contador
-  const waIconHrefs = new WeakMap(); // <link> → último href que le puso WhatsApp
+  let siteTitle = null; // último título que puso el sitio, con su contador
+  const siteIconHrefs = new WeakMap(); // <link> → último href que le puso el sitio
   const ownIconHrefs = new WeakMap(); // <link> → href que le puso la extensión
 
   // Este script corre con WhatsApp aún en su pantalla de carga: el favicon
@@ -1009,30 +921,30 @@
   function applyTabTitle() {
     const textNode = document.querySelector("head > title")?.firstChild;
     if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
-    if (waTitle === null) waTitle = textNode.data;
+    if (siteTitle === null) siteTitle = textNode.data;
 
-    const wanted = tabCountHidden() ? waTitle.replace(TITLE_COUNT_RE, "") : waTitle;
+    const wanted = tabCountHidden() ? siteTitle.replace(TITLE_COUNT_RE, "") : siteTitle;
     // Se edita el nodo de texto en vez de document.title: eso no genera un
-    // childList, y el observer sabe que cada childList es una escritura de WhatsApp.
+    // childList, y el observer sabe que cada childList es una escritura del sitio.
     if (textNode.data !== wanted) textNode.data = wanted;
   }
 
   function applyTabIcon() {
     if (!cleanIconHref) return;
     document.head.querySelectorAll(ICON_SELECTOR).forEach((link) => {
-      if (!waIconHrefs.has(link)) waIconHrefs.set(link, link.getAttribute("href"));
+      if (!siteIconHrefs.has(link)) siteIconHrefs.set(link, link.getAttribute("href"));
 
       let wanted;
       if (tabCountHidden()) {
         wanted = cleanIconHref;
         ownIconHrefs.set(link, wanted);
       } else if (ownIconHrefs.has(link)) {
-        // Si WhatsApp escribió el mismo href que el nuestro no se vio; el título
+        // Si el sitio escribió el mismo href que el nuestro no se vio; el título
         // dice si hoy toca el favicon con contador o el limpio.
-        wanted = TITLE_COUNT_RE.test(waTitle ?? "") ? waIconHrefs.get(link) : cleanIconHref;
+        wanted = TITLE_COUNT_RE.test(siteTitle ?? "") ? siteIconHrefs.get(link) : cleanIconHref;
         ownIconHrefs.delete(link);
       } else {
-        return; // nunca se tocó: es de WhatsApp tal cual
+        return; // nunca se tocó: es del sitio tal cual
       }
       if (wanted && link.getAttribute("href") !== wanted) link.setAttribute("href", wanted);
     });
@@ -1043,10 +955,8 @@
     applyTabIcon();
   }
 
-  // El número sobre el ícono de Chats es un [role="status"] dentro de la barra
-  // de navegación (confirmado via consola). Solo se marcan los que muestran un
-  // número: los puntos verdes de Estados y Canales se quedan como están.
-  const NAV_COUNT_SELECTOR = '[data-testid="navbar-primary-section"] [role="status"]';
+  // Contador del menú lateral del sitio: solo se marcan los que muestran un número.
+  const NAV_COUNT_SELECTOR = site.navCountSelector;
 
   function markNavCounts() {
     document.querySelectorAll(NAV_COUNT_SELECTOR).forEach((el) => {
@@ -1061,35 +971,35 @@
     let changed = false;
     for (const r of records) {
       if (r.target.nodeName === "TITLE" || [...r.addedNodes].some((n) => n.nodeName === "TITLE")) {
-        waTitle = document.querySelector("head > title")?.textContent ?? null;
+        siteTitle = document.querySelector("head > title")?.textContent ?? null;
         changed = true;
       }
       for (const n of r.addedNodes) {
         if (n.matches?.(ICON_SELECTOR)) {
-          waIconHrefs.set(n, n.getAttribute("href"));
+          siteIconHrefs.set(n, n.getAttribute("href"));
           changed = true;
         }
       }
       if (r.type === "attributes" && r.target.matches(ICON_SELECTOR)) {
         const href = r.target.getAttribute("href");
-        if (href !== ownIconHrefs.get(r.target)) waIconHrefs.set(r.target, href);
+        if (href !== ownIconHrefs.get(r.target)) siteIconHrefs.set(r.target, href);
         changed = true;
       }
     }
     if (changed) applyTabCounter();
   }).observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ["href"] });
 
-  // ---- Hover sobre la conversación activa (#main) ----
-  // Delegado en `document` en vez de atado al nodo #main puntual
+  // ---- Hover sobre la conversación activa ----
+  // Delegado en `document` en vez de atado a un nodo puntual de la conversación
   document.addEventListener("mouseover", (e) => {
-    if (e.target.closest?.("#main")) {
+    if (e.target.closest?.(site.conversationSelector)) {
       document.body.classList.add("wps-main-hovered");
     }
   });
 
   document.addEventListener("mouseout", (e) => {
-    const main = document.getElementById("main");
-    if (!main || !e.target.closest?.("#main")) return;
+    const main = e.target.closest?.(site.conversationSelector);
+    if (!main) return;
     const related = e.relatedTarget;
     if (!related || !main.contains(related)) {
       document.body.classList.remove("wps-main-hovered");
@@ -1099,13 +1009,13 @@
   // ---- Hover específico sobre el bloque de info del encabezado ----
   // (foto + nombre + "en línea"/"última vez")
   document.addEventListener("mouseover", (e) => {
-    if (e.target.closest?.('[data-testid="conversation-info-header"]')) {
+    if (e.target.closest?.(site.conversationHeaderSelector)) {
       document.body.classList.add("wps-header-hovered");
     }
   });
 
   document.addEventListener("mouseout", (e) => {
-    const infoHeader = e.target.closest?.('[data-testid="conversation-info-header"]');
+    const infoHeader = e.target.closest?.(site.conversationHeaderSelector);
     if (!infoHeader) return;
     const related = e.relatedTarget;
     if (!related || !infoHeader.contains(related)) {
@@ -1114,8 +1024,8 @@
   });
 
   // ---- Hover por mensaje individual dentro de la conversación activa ----
-  const MESSAGE_ROW_SELECTOR = ".focusable-list-item";
-  const MESSAGE_SELECTOR = '[data-testid="msg-container"]';
+  const MESSAGE_ROW_SELECTOR = site.messageRowSelector;
+  const MESSAGE_SELECTOR = site.messageSelector;
 
   document.addEventListener("mouseover", (e) => {
     if (!settings.privacyActive || !settings.blurMain) return;
@@ -1168,109 +1078,6 @@
     if (mod && e.shiftKey && e.key === "K") { e.preventDefault(); togglePanel(); }
     if (mod && e.shiftKey && e.key === "L") { e.preventDefault(); lockNow(); }
   });
-
-  // ---- Status Preview ----
-  const CIRCUNFERENCIA = 2 * Math.PI * 50;
-
-  function countStates(cell) {
-    const circle = cell.querySelector("circle");
-    if (!circle) return 0;
-    const dasharray = circle.getAttribute("stroke-dasharray");
-    if (!dasharray) return 0;
-    const values = dasharray.split(" ").map(Number).filter(Boolean);
-    const arcValue = Math.max(...values);
-    if (arcValue <= 0) return 0;
-    return Math.round(CIRCUNFERENCIA / (arcValue + 10));
-  }
-
-  function buildStatusPreview() {
-    if (document.getElementById("cps-status-preview")) return;
-
-    const preview = document.createElement("div");
-    preview.id = "cps-status-preview";
-    preview.innerHTML = `
-      <div class="cps-sp-name"></div>
-      <div class="cps-sp-noimg"><span>👁</span>Preview</div>
-      <div class="cps-sp-count"></div>
-    `;
-    document.body.appendChild(preview);
-  }
-
-  function setupStatusPreview() {
-    const drawer = document.querySelector('[data-testid="status-drawer"]');
-    if (!drawer || drawer._wpsStatusBound) return;
-    drawer._wpsStatusBound = true;
-
-    buildStatusPreview();
-    const preview = document.getElementById("cps-status-preview");
-    const nameEl = preview.querySelector(".cps-sp-name");
-    const countEl = preview.querySelector(".cps-sp-count");
-    const noImgEl = preview.querySelector(".cps-sp-noimg");
-
-    drawer.addEventListener("mouseover", (e) => {
-      if (!settings.privacyActive) return;
-
-      const cell = e.target.closest('[data-testid="status-row-cell"]');
-      if (!cell) return;
-
-      // Obtener thumbnail
-      const thumbDiv = cell.querySelector('[data-testid="status-thumbnail"] div div');
-      const bg = thumbDiv ? window.getComputedStyle(thumbDiv).backgroundImage : null;
-
-      // Nombre del contacto
-      const name = cell.querySelector('[data-testid="cell-frame-title"]')?.textContent || "";
-      nameEl.textContent = name;
-
-      // Conteo de estados
-      const count = countStates(cell);
-      const countLabel = count > 5 ? "+5" : count;
-      countEl.textContent = count > 1
-        ? `👁 ${countLabel} ${cpsT("statusPreviewCount", settings.lang)}`
-        : cpsT("statusPreviewOnly", settings.lang);
-
-      if (bg && bg !== "none") {
-        preview.style.backgroundImage = bg;
-        noImgEl.style.display = "none";
-      } else {
-        preview.style.backgroundImage = "none";
-        noImgEl.style.display = "flex";
-      }
-
-      preview.classList.add("visible");
-    });
-
-    drawer.addEventListener("mousemove", (e) => {
-      if (!settings.privacyActive) return;
-      const x = e.clientX + 24;
-      const y = Math.max(10, Math.min(e.clientY - 80, window.innerHeight - 320));
-      preview.style.left = x + "px";
-      preview.style.top = y + "px";
-    });
-
-    drawer.addEventListener("mouseout", (e) => {
-      const cell = e.target.closest('[data-testid="status-row-cell"]');
-      if (!cell || !cell.contains(e.relatedTarget)) {
-        preview.classList.remove("visible");
-      }
-    });
-  }
-
-  // Se revisa periódicamente si el drawer sigue presente y
-  // visible; si no, se oculta el preview.
-  setInterval(() => {
-    const preview = document.getElementById("cps-status-preview");
-    if (!preview || !preview.classList.contains("visible")) return;
-
-    const drawer = document.querySelector('[data-testid="status-drawer"]');
-    if (!drawer) {
-      preview.classList.remove("visible");
-      return;
-    }
-    const rect = drawer.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      preview.classList.remove("visible");
-    }
-  }, 500);
 
   // ---- Bloqueo con PIN (Pro) ----
 
@@ -1597,27 +1404,17 @@
       checkSchedule();
       buildPanel();
 
-      // pane-side puede no existir aún — reintentar hasta que aparezca
+      // La lista de chats puede no existir aún — reintentar hasta que aparezca
       function tryBindPane() {
-        const pane = document.getElementById("pane-side");
-        if (pane) {
-          setupHoverReveal();
+        if (site.chatListReady()) {
+          site.bindHoverContainers();
         } else {
           setTimeout(tryBindPane, 300);
         }
       }
       tryBindPane();
 
-      // Status preview — el drawer puede montarse después
-      function tryBindStatus() {
-        const drawer = document.querySelector('[data-testid="status-drawer"]');
-        if (drawer) {
-          setupStatusPreview();
-        } else {
-          setTimeout(tryBindStatus, 500);
-        }
-      }
-      tryBindStatus();
+      site.start();
 
       if (!settings.panelVisible) {
         panel.classList.add("wps-panel-hidden");
@@ -1674,375 +1471,27 @@
     overlay.querySelector("#wps-changelog-close").addEventListener("click", close);
   }
 
-  // Esperar a que WhatsApp cargue el DOM
+  // Esperar a que el sitio cargue el DOM
   if (document.readyState === "complete") {
     init();
   } else {
     window.addEventListener("load", init);
   }
 
-  // ---- Descargar estados (fotos y videos) ----
-  function findStatusMenuButton() {
-    // Se ancla al <title> interno "ic-more-vert" del ícono de tres puntos
-    // en vez del aria-label ("Menú"), que cambia según el idioma de
-    // WhatsApp — el nombre del ícono no se traduce.
-    return findButtonByIconTitle((name) => name === "ic-more-vert");
-  }
-
-  function findStatusPlayButton() {
-    // Solo existe en estados de video (reproducir/pausar); las fotos no
-    // tienen este botón, por eso el ícono de menú queda como respaldo.
-    return findButtonByIconTitle((name) => name.startsWith("ic-play") || name.startsWith("ic-pause"));
-  }
-
-  function isInsideChatListHeader(btn) {
-    // El header de la lista de chats (junto al botón "+") comparte el
-    // mismo ícono "ic-more-vert" en su propio menú de opciones. Se
-    // descarta buscando el marcador "new-chat-outline" (confirmado real,
-    // exclusivo de ese header) en un par de ancestros hacia arriba, en
-    // vez de adivinar clases o IDs generados por WhatsApp.
-    let el = btn;
-    for (let i = 0; i < 6 && el; i++) {
-      if (el.querySelector?.('[data-testid="new-chat-outline"]')) return true;
-      el = el.parentElement;
-    }
-    return false;
-  }
-
-  function findButtonByIconTitle(matches) {
-    const titles = document.querySelectorAll("svg title");
-    for (const t of titles) {
-      if (!matches(t.textContent || "")) continue;
-      const btn = t.closest("button");
-      if (!btn) continue;
-      if (isInsideChatListHeader(btn)) continue;
-      const rect = btn.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) continue;
-      return btn;
-    }
-    return null;
-  }
-
-  function getActiveStatusMedia() {
-    // Puede haber más de un <video>/<img> en el DOM a la vez (WhatsApp
-    // precarga el estado siguiente/anterior) — se toma el que esté
-    // realmente visible en pantalla en este momento.
-    // Las fotos SÍ deben exigir blob: (si no, se cuela algún thumbnail
-    // pequeño de por medio); los videos se dejan abiertos a cualquier
-    // src porque WhatsApp a veces usa una ruta /stream/video en vez de
-    // blob para ellos.
-    const candidates = document.querySelectorAll('video, img[src^="blob:"]');
-    for (const el of candidates) {
-      if (!el.src) continue;
-      // Una foto o video de un MENSAJE dentro del chat abierto también usa
-      // blob: — sin excluir #main, un mensaje grande visible en pantalla
-      // se detectaba como si fuera contenido del visor de Estados (que es
-      // una vista totalmente aparte, nunca anidada dentro de #main).
-      if (el.closest("#main")) continue;
-      const style = window.getComputedStyle(el);
-      if (style.visibility === "hidden" || style.display === "none") continue;
-      const rect = el.getBoundingClientRect();
-      if (rect.width > 200 && rect.height > 200) return el;
-    }
-    return null;
-  }
-
-  function findActiveTextStatus() {
-    // Los estados de texto no tienen foto/video — su contenido vive en
-    // este contenedor (confirmado por inspección) en vez de un <img>/<video>.
-    const candidates = document.querySelectorAll('[data-testid="status-text"]');
-    for (const el of candidates) {
-      if (el.closest("#main")) continue;
-      const style = window.getComputedStyle(el);
-      if (style.visibility === "hidden" || style.display === "none") continue;
-      const rect = el.getBoundingClientRect();
-      if (rect.width > 100 && rect.height > 40) return el;
-    }
-    return null;
-  }
-
-  function findStatusBackgroundColor(el) {
-    // Sube por los ancestros buscando el primer color de fondo sólido
-    // real — el propio contenedor del texto suele ser transparente, el
-    // color/gradiente vive en algún ancestro (la "tarjeta" del estado).
-    let node = el;
-    for (let i = 0; i < 8 && node; i++) {
-      const bg = window.getComputedStyle(node).backgroundColor;
-      if (bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") return bg;
-      node = node.parentElement;
-    }
-    return "#075E54"; // verde WhatsApp como respaldo si no se encuentra nada
-  }
-
-  function downloadTextStatusAsImage(textEl) {
-    // No hay imagen real que descargar — se reconstruye el estado como
-    // una imagen (fondo + texto centrado) para poder guardarlo igual.
-    const bgColor = findStatusBackgroundColor(textEl);
-    const text = (textEl.textContent || "").trim();
-    if (!text) return;
-
-    const width = 720;
-    const height = 1280;
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "600 42px system-ui, -apple-system, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    // Ajuste de línea simple por ancho disponible
-    const maxWidth = width - 100;
-    const words = text.split(" ");
-    const lines = [];
-    let current = "";
-    words.forEach((word) => {
-      const test = current ? `${current} ${word}` : word;
-      if (ctx.measureText(test).width > maxWidth && current) {
-        lines.push(current);
-        current = word;
-      } else {
-        current = test;
-      }
-    });
-    if (current) lines.push(current);
-
-    const lineHeight = 56;
-    const startY = height / 2 - ((lines.length - 1) * lineHeight) / 2;
-    lines.forEach((line, i) => {
-      ctx.fillText(line, width / 2, startY + i * lineHeight);
-    });
-
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `estado-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-    }, "image/png");
-  }
-
-  // Reintenta el fetch si el blob llega vacío — al descargar justo cuando
-  // se abre un estado, a veces el blob: todavía no terminó de estar listo
-  // en el navegador y el primer intento trae 0 bytes.
-  async function fetchBlobWithRetry(url, maxRetries = 4, delayMs = 350) {
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      if (blob.size > 0) return blob;
-      if (attempt < maxRetries - 1) {
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-      }
-    }
-    return null;
-  }
-
-  async function downloadCurrentStatus() {
-    const media = getActiveStatusMedia();
-    if (media) {
-      try {
-        const blob = await fetchBlobWithRetry(media.src);
-        if (!blob) {
-          console.error("[CPS] El estado llegó vacío tras varios intentos — puede que el contenido aún no terminara de cargar.");
-          return;
-        }
-        const isVideo = media.tagName === "VIDEO";
-        const ext = isVideo ? "mp4" : (blob.type.includes("png") ? "png" : "jpg");
-        const filename = `estado-${Date.now()}.${ext}`;
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      } catch (err) {
-        console.error("[CPS] No se pudo descargar el estado:", err);
-      }
-      return;
-    }
-
-    // Sin foto/video visible: puede ser un estado de texto
-    const textStatus = findActiveTextStatus();
-    if (textStatus) downloadTextStatusAsImage(textStatus);
-  }
-
-  function buildStatusDownloadButton(anchorBtn) {
-    // Se clona el botón nativo completo (en vez de armar uno desde cero)
-    // para heredar exactamente el mismo padding, tamaño y comportamiento
-    // hover — así no queda desalineado respecto a los demás íconos.
-    const btn = anchorBtn.cloneNode(true);
-    btn.removeAttribute("data-tab");
-    btn.removeAttribute("aria-expanded");
-    btn.removeAttribute("aria-haspopup");
-
-    const label = cpsT("downloadStatus", settings.lang);
-    btn.setAttribute("aria-label", label);
-    btn.title = label;
-
-    const svg = btn.querySelector("svg");
-    if (svg) {
-      svg.setAttribute("viewBox", "0 0 24 24");
-      svg.innerHTML = `<path fill="currentColor" d="M12 16.5 6.5 11l1.4-1.45L11 12.67V4h2v8.67l3.1-3.12L17.5 11 12 16.5ZM6 20a1.94 1.94 0 0 1-1.43-.57A1.94 1.94 0 0 1 4 18v-3h2v3h12v-3h2v3a1.94 1.94 0 0 1-.57 1.43A1.94 1.94 0 0 1 18 20H6Z"/>`;
-    }
-
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      downloadCurrentStatus();
-    });
-
-    return btn;
-  }
-
-  function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  function findNextStatusButton() {
-    // Dejar de avanzar en último estado
-    return findButtonByIconTitle((name) => name === "ic-chevron-right");
-  }
-
-  async function downloadAllStatuses() {
-    const MAX_STATUSES = 30; // resguardo de seguridad ante algo inesperado
-    let count = 0;
-
-    while (count < MAX_STATUSES) {
-      await downloadCurrentStatus();
-      count++;
-
-      const nextBtn = findNextStatusButton();
-      if (!nextBtn) break; // no hay más estados de este contacto
-
-      nextBtn.click();
-      await sleep(700); // dar tiempo a que cargue el siguiente estado
-    }
-  }
-
-  function buildStatusDownloadAllButton(anchorBtn) {
-    const btn = anchorBtn.cloneNode(true);
-    btn.removeAttribute("data-tab");
-    btn.removeAttribute("aria-expanded");
-    btn.removeAttribute("aria-haspopup");
-
-    const label = cpsT("downloadAllStatuses", settings.lang);
-    btn.setAttribute("aria-label", label);
-    btn.title = label;
-
-    const svg = btn.querySelector("svg");
-    if (svg) {
-      svg.setAttribute("viewBox", "0 0 24 24");
-      // ïcono descargar todos los estados
-      svg.innerHTML = `
-        <path fill="currentColor" d="M12 13.2 8.3 9.5l1.3-1.3L11 9.4V2h2v7.4l1.4-1.2 1.3 1.3L12 13.2Z"/>
-        <rect x="5" y="15.6" width="14" height="1.6" rx="0.8" fill="currentColor"/>
-        <rect x="5" y="18.3" width="14" height="1.6" rx="0.8" fill="currentColor" opacity="0.6"/>
-        <rect x="5" y="21" width="14" height="1.6" rx="0.8" fill="currentColor" opacity="0.32"/>
-      `;
-    }
-
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      downloadAllStatuses();
-    });
-
-    return btn;
-  }
-
-  function injectStatusDownloadButton() {
-    // Validar que exista un estado activo (foto/video o texto) antes de inyectar el botón
-    if (!getActiveStatusMedia() && !findActiveTextStatus()) return;
-
-    // El visualizar de estados nativo ya tiene un botón de descarga (solo en fotos/videos, no en texto) — si está presente y visible, 
-    // no se inyecta el botón extra.
-    const nativeDownloadBtn = document.querySelector('[data-testid="ic-download"]');
-    if (nativeDownloadBtn) {
-      const rect = nativeDownloadBtn.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) return;
-    }
-
-    const playBtn = findStatusPlayButton();
-    const menuBtn = findStatusMenuButton();
-    const anchorBtn = playBtn || menuBtn;
-    if (!anchorBtn) return;
-
-    const wrapper = anchorBtn.closest("span.html-span") || anchorBtn.parentElement;
-    if (!wrapper || wrapper._wpsDownloadInjected) return;
-    wrapper._wpsDownloadInjected = true;
-
-    const span = document.createElement("span");
-    span.className = wrapper.className || "";
-    span.appendChild(buildStatusDownloadButton(anchorBtn));
-
-    const spanAll = document.createElement("span");
-    spanAll.className = wrapper.className || "";
-    spanAll.appendChild(buildStatusDownloadAllButton(anchorBtn));
-
-    if (playBtn) {
-      // Junto a Reproducir/Pausar (estados de video)
-      wrapper.after(span);
-      span.after(spanAll);
-    } else {
-      // Sin botón de play (foto): se ubica antes del menú
-      wrapper.parentElement?.insertBefore(span, wrapper);
-      wrapper.parentElement?.insertBefore(spanAll, wrapper);
-    }
-  }
-
-  // También observar cuando WhatsApp monta su app (SPA)
+  // También observar cuando el sitio monta su app (SPA)
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType !== 1) continue;
 
-        // Panel principal
-        if (node.id === "app" && !document.getElementById("wps-panel")) {
+        if (site.isAppRoot(node) && !document.getElementById("wps-panel")) {
           buildPanel();
-          setupHoverReveal();
+          site.bindHoverContainers();
         }
-
-        // archived-chatlist montado dinámicamente
-        const archived = node.matches?.('[data-testid="archived-chatlist"]')
-          ? node
-          : node.querySelector?.('[data-testid="archived-chatlist"]');
-        if (archived) bindArchivedChatlist();
-
-        // calls-tab-drawer montado dinámicamente (al abrir Llamadas). Trae su
-        // propio #pane-side, que necesita su propio enganche de hover.
-        const callsDrawer = node.matches?.('[data-testid="calls-tab-drawer"]')
-          ? node
-          : node.querySelector?.('[data-testid="calls-tab-drawer"]');
-        if (callsDrawer) bindCallsDrawer();
-
-        // favorites-drawer montado dinámicamente (Llamadas > "Ver todos los
-        // favoritos"). Sus tarjetas no son filas list-item-N.
-        const favoritesDrawer = node.matches?.('[data-testid="favorites-drawer"]')
-          ? node
-          : node.querySelector?.('[data-testid="favorites-drawer"]');
-        if (favoritesDrawer) bindFavoritesDrawer();
-
-        // status-drawer montado dinámicamente
-        const statusDrawer = node.matches?.('[data-testid="status-drawer"]')
-          ? node
-          : node.querySelector?.('[data-testid="status-drawer"]');
-        if (statusDrawer) setupStatusPreview();
+        site.onNodeAdded(node);
       }
     }
-    // El visor de estados se remonta cada vez que se abre uno nuevo
-    injectStatusDownloadButton();
+    site.onMutations();
     // El contador del menú lateral se monta de nuevo al pasar de 0 a 1 no leído
     markNavCounts();
   });

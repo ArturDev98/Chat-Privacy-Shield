@@ -20,10 +20,12 @@
         "i18n.js",
         "pro.js",
         "changelog.js",
+        "sites/whatsapp.js",
         "content.js"
       ],
       "css": [
-        "content.css"
+        "content.css",
+        "sites/whatsapp.css"
       ],
       "run_at": "document_idle"
     }

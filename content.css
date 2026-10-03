@@ -1,5 +1,5 @@
 /* =============================================
-   WhatsApp Privacy Shield - Content Styles
+   Chat Privacy Shield - núcleo (interfaz propia)
    ============================================= */
 
 /* ---- Variables de transición ---- */
@@ -7,147 +7,6 @@
   --wps-blur: 8px;
   --wps-opacity: 0.15;
   --wps-transition: 0.25s ease;
-}
-
-/* ---- Panel lateral de chats (lista) ---- */
-/* Blur aplicado por item individual — evita el problema de filter en contenedor padre */
-body.wps-active #pane-side [data-testid^="list-item-"],
-body.wps-active [data-testid="archived-chatlist"] [data-testid^="list-item-"] {
-  filter: blur(var(--wps-blur));
-  opacity: var(--wps-opacity);
-  transition: filter var(--wps-transition), opacity var(--wps-transition);
-}
-
-/* Sin hover reveal: bloquear clicks accidentales */
-body.wps-active:not(.wps-hover-reveal) #pane-side,
-body.wps-active:not(.wps-hover-reveal) [data-testid="archived-chatlist"] {
-  pointer-events: none;
-}
-
-/* Con hover reveal: el panel recibe eventos para detectar el cursor */
-body.wps-active.wps-hover-reveal #pane-side,
-body.wps-active.wps-hover-reveal [data-testid="archived-chatlist"] {
-  pointer-events: auto;
-}
-
-/* Hover reveal: solo el item bajo el cursor se revela */
-body.wps-active.wps-hover-reveal #pane-side [data-testid^="list-item-"].wps-revealed,
-body.wps-active.wps-hover-reveal [data-testid="archived-chatlist"] [data-testid^="list-item-"].wps-revealed {
-  filter: blur(0px) !important;
-  opacity: 1 !important;
-}
-
-/* ---- Drawer de Favoritos (Llamadas > "Ver todos los favoritos") ---- */
-body.wps-active [data-testid="favorites-drawer"] [data-testid="cell-frame-container"] {
-  filter: blur(var(--wps-blur));
-  opacity: var(--wps-opacity);
-  transition: filter var(--wps-transition), opacity var(--wps-transition);
-}
-
-body.wps-active:not(.wps-hover-reveal) [data-testid="favorites-drawer"] {
-  pointer-events: none;
-}
-
-body.wps-active.wps-hover-reveal [data-testid="favorites-drawer"] {
-  pointer-events: auto;
-}
-
-body.wps-active.wps-hover-reveal [data-testid="favorites-drawer"] [data-testid="cell-frame-container"].wps-revealed {
-  filter: blur(0px) !important;
-  opacity: 1 !important;
-}
-
-/* Hover reveal dentro del chat abierto (#main): imagen individual */
-body.wps-active.wps-hover-reveal #main img[src*="blob:"]:hover,
-body.wps-active.wps-hover-reveal #main img[src*="data:"]:hover {
-  filter: blur(0px) !important;
-  transition: filter 0.15s ease;
-}
-
-body.wps-active.wps-hover-reveal.wps-main-hovered img[src*="blob:"],
-body.wps-active.wps-hover-reveal.wps-main-hovered img[src*="data:"] {
-  filter: blur(0px) !important;
-}
-
-/* ---- Fotos de perfil + imágenes compartidas dentro del chat ---- */
-
-body.wps-active.wps-hide-avatars span[data-icon="default-user"],
-body.wps-active.wps-hide-avatars div[class*="avatar"] img,
-body.wps-active.wps-hide-avatars [data-testid*="photo"] img,
-body.wps-active.wps-hide-avatars [data-testid*="avatar"] img,
-body.wps-active.wps-hide-avatars #main img[src*="blob:"],
-body.wps-active.wps-hide-avatars #main img[src*="data:"] {
-  filter: blur(12px) !important;
-  transition: filter 0.25s ease;
-}
-
-/* Cuando el item está revelado (hover), quitar blur de fotos y nombres.
-   Importante: aunque el item padre ya pierda su blur al revelarse, la
-   foto y el nombre tienen SU PROPIO filter aplicado directamente (más
-   abajo) — el filtro no se hereda, así que sin esta regla se quedan
-   blureados aunque el resto del item ya se vea nítido. Se ancla solo en
-   .wps-revealed (la clase que realmente se activa por hover, item por item)
-   sin exigir un list-item-N alrededor: así cubre por igual las filas de
-   chats/archivados/Llamadas y las tarjetas del drawer de Favoritos, que no
-   tienen esa fila. Esa clase solo se pone en filas/tarjetas de lista. */
-body.wps-active.wps-hover-reveal .wps-revealed img[src*="blob:"],
-body.wps-active.wps-hover-reveal .wps-revealed img[src*="data:"],
-body.wps-active.wps-hover-reveal .wps-revealed span[data-icon="default-user"],
-body.wps-active.wps-hover-reveal .wps-revealed div[class*="avatar"] img,
-body.wps-active.wps-hover-reveal .wps-revealed [data-testid*="photo"] img,
-body.wps-active.wps-hover-reveal .wps-revealed [data-testid*="avatar"] img {
-  filter: blur(0px) !important;
-}
-
-/* ---- Nombres en lista de chats (blur independiente) ---- */
-body.wps-active.wps-hide-names span[class*="ggj6brxn"],
-body.wps-active.wps-hide-names div[class*="_11JPr"] span,
-body.wps-active.wps-hide-names span[dir="auto"][class*="x1iyjqo2"] {
-  filter: blur(6px) !important;
-  user-select: none;
-  transition: filter 0.25s ease;
-}
-
-/* Quitar blur del nombre cuando el item está revelado (mismo motivo que
-   arriba: el nombre tiene su propio filter, no alcanza con desblurear
-   el item padre) */
-body.wps-active.wps-hover-reveal .wps-revealed span[class*="ggj6brxn"],
-body.wps-active.wps-hover-reveal .wps-revealed div[class*="_11JPr"] span,
-body.wps-active.wps-hover-reveal .wps-revealed span[dir="auto"][class*="x1iyjqo2"] {
-  filter: blur(0px) !important;
-}
-
-/* ---- Difuminar conversación activa (#main) ---- */
-/* Se excluye el footer (compose box) a propósito: la caja de texto debe
-   seguir siendo usable mientras el resto de la conversación está oculto. */
-
-/* Header: se revela al pasar el cursor por cualquier parte de #main
-   (el nombre/foto del contacto es menos sensible que el contenido) */
-body.wps-active.wps-blur-main #main header {
-  filter: blur(var(--wps-blur));
-  opacity: var(--wps-opacity);
-  transition: filter var(--wps-transition), opacity var(--wps-transition);
-  pointer-events: none;
-}
-
-body.wps-active.wps-blur-main.wps-main-hovered #main header {
-  filter: blur(0px) !important;
-  opacity: 1 !important;
-  pointer-events: auto;
-}
-
-/* Mensajes: cada burbuja se difumina individualmente y solo se revela la
-   que está bajo el cursor — más privado que revelar toda la conversación
-   de una sola vez al pasar el mouse por cualquier parte de #main. */
-body.wps-active.wps-blur-main [data-testid="conversation-panel-messages"] [data-testid="msg-container"] {
-  filter: blur(var(--wps-blur));
-  opacity: var(--wps-opacity);
-  transition: filter var(--wps-transition), opacity var(--wps-transition);
-}
-
-body.wps-active.wps-blur-main [data-testid="conversation-panel-messages"] [data-testid="msg-container"].wps-msg-revealed {
-  filter: blur(0px) !important;
-  opacity: 1 !important;
 }
 
 /* ---- Badge de mensajes no leídos (overlay clonado) ---- */
@@ -162,57 +21,8 @@ body.wps-active.wps-blur-main [data-testid="conversation-panel-messages"] [data-
   transition: none !important;
 }
 
-/* ---- Ocultar texto escrito al perder el foco del input de chat ---- */
-body.wps-active.wps-hide-typed [data-testid="conversation-compose-box-input"].wps-input-blurred {
-  filter: blur(5px);
-  transition: filter 0.2s ease;
-}
-
-/* ---- Ocultar "en línea" / "última vez" / "escribiendo..." ---- */
-/* Selector confirmado por inspección: el contenedor data-testid=
-   "chat-subtitle" es exclusivo de esa línea, distinto de
-   "conversation-info-header-chat-title" (el nombre), así que el nombre
-   nunca se ve afectado por este toggle. */
-body.wps-active.wps-hide-subtitle #main [data-testid="chat-subtitle"] {
-  filter: blur(var(--wps-blur));
-  opacity: var(--wps-opacity);
-  transition: filter var(--wps-transition), opacity var(--wps-transition);
-}
-
-body.wps-active.wps-hide-subtitle.wps-header-hovered #main [data-testid="chat-subtitle"] {
-  filter: blur(0px) !important;
-  opacity: 1 !important;
-}
-
-/* ---- Revelar el nombre del contacto en el encabezado del chat abierto ---- */
-/* El nombre ahí (data-testid="conversation-info-header-chat-title") ya
-   queda difuminado por "ocultar nombres" (matchea uno de sus selectores
-   genéricos), pero antes no tenía forma de revelarse — el revelado por
-   hover solo cubría los items de la lista. Se engancha al mismo mecanismo
-   que ya usan "chat-subtitle"/blur-main: hover sobre #main. */
-body.wps-active.wps-hover-reveal.wps-header-hovered #main [data-testid="conversation-info-header-chat-title"] {
-  filter: blur(0px) !important;
-}
-
-/* ---- Ocultar la foto del contacto en el encabezado del chat abierto ---- */
-/* Independiente de "difuminar chat activo" — este toggle solo afecta la
-   foto de perfil que aparece junto al nombre. El header solo tiene un
-   <img> real (los íconos de la barra de herramientas son SVG), así que
-   apuntar a cualquier img dentro de header es seguro y no ambiguo. */
-body.wps-active.wps-hide-header-avatar #main header img {
-  filter: blur(var(--wps-blur));
-  transition: filter var(--wps-transition);
-}
-
-/* Se revela con el mismo hover que ya usan el nombre y "en línea" —
-   pasar el cursor por la foto+nombre+subtítulo lo muestra todo junto */
-body.wps-active.wps-hide-header-avatar.wps-header-hovered #main header img {
-  filter: blur(0px) !important;
-}
-
-/* Contador del menú lateral: content.js marca con .wps-nav-count solo los
-   [role="status"] de la barra que muestran un número. Se oculta sin quitarle
-   su hueco para que los íconos no se muevan. */
+/* content.js marca .wps-nav-count solo en contadores numéricos del menú lateral.
+   Se oculta sin quitarle el hueco para que los íconos no se muevan. */
 body.wps-active.wps-hide-tab-count .wps-nav-count {
   visibility: hidden !important;
 }
@@ -391,79 +201,6 @@ body.wps-active.wps-hide-tab-count .wps-nav-count {
   opacity: 1;
 }
 
-/* =============================================
-   Status Preview Tooltip
-   ============================================= */
-
-#cps-status-preview {
-  position: fixed;
-  width: 180px;
-  height: 300px;
-  border-radius: 16px;
-  background-size: cover;
-  background-position: center;
-  background-color: #1f2c34;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08);
-  pointer-events: none;
-  z-index: 999999;
-  display: none;
-  opacity: 0;
-  filter: contrast(1.05) saturate(1.1);
-  transition: opacity 0.15s ease;
-  overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-#cps-status-preview.visible {
-  display: block;
-  opacity: 1;
-}
-
-#cps-status-preview .cps-sp-name {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-#cps-status-preview .cps-sp-count {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(4px);
-  color: rgba(255,255,255,0.85);
-  font-size: 10px;
-  padding: 4px 10px;
-  border-radius: 12px;
-  white-space: nowrap;
-  letter-spacing: 0.3px;
-}
-
-#cps-status-preview .cps-sp-noimg {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: rgba(255,255,255,0.3);
-  font-size: 11px;
-}
-
-#cps-status-preview .cps-sp-noimg span {
-  font-size: 28px;
-}
-
 /* ---- Popup de "novedades" al actualizar de versión ---- */
 #wps-changelog-overlay {
   position: fixed;
@@ -594,19 +331,13 @@ body.wps-active.wps-hide-tab-count .wps-nav-count {
   display: none !important;
 }
 
-/* El overlay es opaco y tapa todo; el blur del fondo es una segunda barrera
-   por si WhatsApp pinta algo fuera del flujo normal. */
-body.wps-locked #app {
-  filter: blur(24px) !important;
-}
 
 body.wps-locked {
   overflow: hidden !important;
 }
 
 body.wps-locked #wps-panel,
-body.wps-locked #wps-restore-hint,
-body.wps-locked #cps-status-preview {
+body.wps-locked #wps-restore-hint {
   display: none !important;
 }
 
