@@ -4,6 +4,7 @@ function cpsCreateSite(core) {
   "use strict";
 
   const lang = () => core.getSettings().lang;
+  const TITLE_COUNT_RE = /^\(\d+\)\s*/;
 
   // ---- Listas con revelado por hover ----
 
@@ -522,7 +523,8 @@ function cpsCreateSite(core) {
     messageSelector: '[data-testid="msg-container"]',
 
     // WhatsApp pone el contador como "(3) WhatsApp".
-    titleCountRe: /^\(\d+\)\s*/,
+    titleHasCount: (title) => TITLE_COUNT_RE.test(title),
+    cleanTitle: (title) => title.replace(TITLE_COUNT_RE, ""),
     // Número sobre el ícono de Chats (confirmado via consola); los puntos verdes
     // de Estados y Canales también son [role="status"], pero sin número.
     navCountSelector: '[data-testid="navbar-primary-section"] [role="status"]',

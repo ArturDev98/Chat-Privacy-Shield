@@ -48,7 +48,7 @@
   <div class="container">
     <div class="badge">🛡 Chat Privacy Shield</div>
     <h1>Privacy Policy</h1>
-    <p class="subtitle">Last updated: September 2026 · Effective immediately upon installation</p>
+    <p class="subtitle">Last updated: October 2026 · Effective immediately upon installation</p>
 
     <div class="highlight">
       <p><strong>Short version:</strong> Chat Privacy Shield does not collect, store, transmit, or share any personal data. Everything stays on your device.</p>
@@ -56,7 +56,7 @@
 
     <h2>1. What We Collect</h2>
     <p><strong>Nothing.</strong> Chat Privacy Shield does not collect any personal information, usage data, analytics, or telemetry of any kind.</p>
-    <p>The extension does not have access to the content of your messages, contacts, or any data from WhatsApp Web beyond what is visually rendered on your screen.</p>
+    <p>The extension does not have access to the content of your messages, contacts, or any data from WhatsApp Web or Telegram Web beyond what is visually rendered on your screen.</p>
 
     <h2>2. Local Storage Only</h2>
     <p>Your preferences (blur level, enabled features, panel visibility) are saved exclusively using <code>chrome.storage.local</code>. This means your settings are stored locally on your device and are never transmitted to any external server — not to us, not to Google, not to anyone.</p>
@@ -69,12 +69,15 @@
     <p><strong>storage</strong> — Required to remember your privacy settings between browser sessions. Data stays on your device only.</p>
     <p><strong>commands</strong> — Required to register keyboard shortcuts (Ctrl+Shift+H, Ctrl+Shift+K, Ctrl+Shift+L). No keylogging is performed; Chrome handles this natively.</p>
     <p><strong>host_permissions (web.whatsapp.com)</strong> — Required to inject the visual blur/hide CSS into WhatsApp Web. The extension only reads the DOM to apply visual filters and does not read, parse, or transmit message content.</p>
+    <p><strong>optional_host_permissions (web.telegram.org)</strong> — Requested only if you turn on Telegram Web support in the popup, and removable there at any time. It is used for the same visual blur/hide CSS on Telegram Web, with the same limits as WhatsApp Web.</p>
+    <p><strong>activeTab</strong> — Lets the popup see whether the tab you opened it on is Telegram Web, so it can offer to turn on protection there. It only applies to that tab, only when you open the popup, and nothing is stored or sent.</p>
+    <p><strong>scripting</strong> — Used only to register the extension's own blur/hide script for Telegram Web after you grant that optional permission. It does not run any remote code.</p>
 
     <h2>4. Third-Party Services</h2>
     <p>Chat Privacy Shield does not integrate with, send data to, or communicate with any third-party service. There is no backend server, analytics platform, or tracking system of any kind.</p>
 
     <h2>5. No Affiliation</h2>
-    <p>Chat Privacy Shield is an independent open-source project. It is <strong>not affiliated with, endorsed by, or connected to WhatsApp LLC, Meta Platforms Inc., or Google LLC</strong> in any way.</p>
+    <p>Chat Privacy Shield is an independent open-source project. It is <strong>not affiliated with, endorsed by, or connected to WhatsApp LLC, Meta Platforms Inc., Telegram, or Google LLC</strong> in any way.</p>
 
     <h2>6. Children's Privacy</h2>
     <p>This extension does not knowingly collect any information from anyone, including children under the age of 13.</p>
@@ -87,7 +90,7 @@
 
     <hr class="divider">
     <footer>
-      Chat Privacy Shield · Independent open-source project · Not affiliated with WhatsApp or Meta
+      Chat Privacy Shield · Independent open-source project · Not affiliated with WhatsApp, Meta or Telegram
     </footer>
   </div>
 </body>

@@ -238,6 +238,56 @@ const CPS_CHANGELOG = {
       ],
     },
   },
+  "2.0.0": {
+    en: {
+      title: "What's new",
+      items: [
+        "New: Telegram Web support (web.telegram.org/k) \u2014 turn it on from the popup; it uses the same settings as WhatsApp Web",
+        "New (Pro): PIN Lock also protects Telegram Web with the same license",
+        "Fixed: the status download buttons no longer appear in the chats header when you send a photo or video",
+      ],
+    },
+    es: {
+      title: "Novedades",
+      items: [
+        "Nuevo: soporte para Telegram Web (web.telegram.org/k) \u2014 act\u00edvalo desde el popup; usa los mismos ajustes que WhatsApp Web",
+        "Nuevo (Pro): el bloqueo con PIN tambi\u00e9n protege Telegram Web con la misma licencia",
+        "Corregido: los botones para descargar estados ya no aparecen en el encabezado de chats al enviar una foto o un video",
+      ],
+    },
+    de: {
+      title: "Neuigkeiten",
+      items: [
+        "Neu: Unterst\u00fctzung f\u00fcr Telegram Web (web.telegram.org/k) \u2014 im Popup einschalten; es gelten dieselben Einstellungen wie f\u00fcr WhatsApp Web",
+        "Neu (Pro): Die PIN-Sperre sch\u00fctzt mit derselben Lizenz auch Telegram Web",
+        "Behoben: Die Schaltfl\u00e4chen zum Herunterladen von Status erscheinen nicht mehr in der Chat-Kopfzeile, wenn du ein Foto oder Video sendest",
+      ],
+    },
+    ru: {
+      title: "\u0427\u0442\u043e \u043d\u043e\u0432\u043e\u0433\u043e",
+      items: [
+        "\u041d\u043e\u0432\u043e\u0435: \u043f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430 Telegram Web (web.telegram.org/k) \u2014 \u0432\u043a\u043b\u044e\u0447\u0438\u0442\u0435 \u0435\u0451 \u0432\u043e \u0432\u0441\u043f\u043b\u044b\u0432\u0430\u044e\u0449\u0435\u043c \u043e\u043a\u043d\u0435; \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u044e\u0442\u0441\u044f \u0442\u0435 \u0436\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438, \u0447\u0442\u043e \u0438 \u0434\u043b\u044f WhatsApp Web",
+        "\u041d\u043e\u0432\u043e\u0435 (Pro): \u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0430 PIN-\u043a\u043e\u0434\u043e\u043c \u0437\u0430\u0449\u0438\u0449\u0430\u0435\u0442 \u0438 Telegram Web \u0441 \u0442\u043e\u0439 \u0436\u0435 \u043b\u0438\u0446\u0435\u043d\u0437\u0438\u0435\u0439",
+        "\u0418\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043e: \u043a\u043d\u043e\u043f\u043a\u0438 \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u043d\u0438\u044f \u0441\u0442\u0430\u0442\u0443\u0441\u043e\u0432 \u0431\u043e\u043b\u044c\u0448\u0435 \u043d\u0435 \u043f\u043e\u044f\u0432\u043b\u044f\u044e\u0442\u0441\u044f \u0432 \u0437\u0430\u0433\u043e\u043b\u043e\u0432\u043a\u0435 \u0447\u0430\u0442\u043e\u0432 \u043f\u0440\u0438 \u043e\u0442\u043f\u0440\u0430\u0432\u043a\u0435 \u0444\u043e\u0442\u043e \u0438\u043b\u0438 \u0432\u0438\u0434\u0435\u043e",
+      ],
+    },
+    ar: {
+      title: "\u0627\u0644\u062c\u062f\u064a\u062f",
+      items: [
+        "\u062c\u062f\u064a\u062f: \u062f\u0639\u0645 \u062a\u064a\u0644\u064a\u062c\u0631\u0627\u0645 \u0648\u064a\u0628 (web.telegram.org/k) \u2014 \u0641\u0639\u0651\u0644\u0647 \u0645\u0646 \u0627\u0644\u0646\u0627\u0641\u0630\u0629 \u0627\u0644\u0645\u0646\u0628\u062b\u0642\u0629\u061b \u064a\u0633\u062a\u062e\u062f\u0645 \u0646\u0641\u0633 \u0625\u0639\u062f\u0627\u062f\u0627\u062a \u0648\u0627\u062a\u0633\u0627\u0628 \u0648\u064a\u0628",
+        "\u062c\u062f\u064a\u062f (Pro): \u0627\u0644\u0642\u0641\u0644 \u0628\u0631\u0645\u0632 PIN \u064a\u062d\u0645\u064a \u062a\u064a\u0644\u064a\u062c\u0631\u0627\u0645 \u0648\u064a\u0628 \u0623\u064a\u0636\u064b\u0627 \u0628\u0646\u0641\u0633 \u0627\u0644\u062a\u0631\u062e\u064a\u0635",
+        "\u062a\u0645 \u0627\u0644\u0625\u0635\u0644\u0627\u062d: \u0644\u0645 \u062a\u0639\u062f \u0623\u0632\u0631\u0627\u0631 \u062a\u0646\u0632\u064a\u0644 \u0627\u0644\u062d\u0627\u0644\u0627\u062a \u062a\u0638\u0647\u0631 \u0641\u064a \u0631\u0623\u0633 \u0627\u0644\u062f\u0631\u062f\u0634\u0627\u062a \u0639\u0646\u062f \u0625\u0631\u0633\u0627\u0644 \u0635\u0648\u0631\u0629 \u0623\u0648 \u0641\u064a\u062f\u064a\u0648",
+      ],
+    },
+    zh: {
+      title: "\u66f4\u65b0\u5185\u5bb9",
+      items: [
+        "\u65b0\u589e\uff1a\u652f\u6301 Telegram Web\uff08web.telegram.org/k\uff09\u2014 \u5728\u5f39\u51fa\u7a97\u53e3\u4e2d\u5f00\u542f\uff1b\u4f7f\u7528\u4e0e WhatsApp Web \u76f8\u540c\u7684\u8bbe\u7f6e",
+        "\u65b0\u589e\uff08Pro\uff09\uff1aPIN \u7801\u9501\u4f7f\u7528\u540c\u4e00\u8bb8\u53ef\u8bc1\u4e5f\u53ef\u4fdd\u62a4 Telegram Web",
+        "\u4fee\u590d\uff1a\u53d1\u9001\u7167\u7247\u6216\u89c6\u9891\u65f6\uff0c\u4e0b\u8f7d\u72b6\u6001\u7684\u6309\u94ae\u4e0d\u518d\u51fa\u73b0\u5728\u804a\u5929\u5217\u8868\u9876\u90e8",
+      ],
+    },
+  },
 };
 
 function cpsGetChangelog(version, lang) {

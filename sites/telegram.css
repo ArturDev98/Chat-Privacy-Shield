@@ -1,0 +1,113 @@
+/* =============================================
+   Chat Privacy Shield - Telegram Web K
+   ============================================= */
+
+/* ---- Lista de chats (carpetas, archivados, búsqueda) ---- */
+body.wps-active #column-left .chatlist .chatlist-chat {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+/* Sin hover reveal: bloquear clicks accidentales */
+body.wps-active:not(.wps-hover-reveal) #column-left .chatlist {
+  pointer-events: none;
+}
+
+body.wps-active.wps-hover-reveal #column-left .chatlist .chatlist-chat.wps-revealed {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+}
+
+/* ---- Fotos de perfil + fotos y videos dentro del chat ---- */
+body.wps-active.wps-hide-avatars .avatar,
+body.wps-active.wps-hide-avatars #column-center .bubbles .media-photo,
+body.wps-active.wps-hide-avatars #column-center .bubbles .media-video {
+  filter: blur(12px) !important;
+  transition: filter 0.25s ease;
+}
+
+/* Las fotos tienen su propio filter: revelar la fila no se lo quita. */
+body.wps-active.wps-hover-reveal .wps-revealed .avatar {
+  filter: blur(0px) !important;
+}
+
+/* Hover reveal dentro del chat abierto: fotos y videos */
+body.wps-active.wps-hover-reveal.wps-main-hovered #column-center .bubbles .media-photo,
+body.wps-active.wps-hover-reveal.wps-main-hovered #column-center .bubbles .media-video {
+  filter: blur(0px) !important;
+}
+
+/* ---- Nombres ---- */
+body.wps-active.wps-hide-names .peer-title {
+  filter: blur(6px) !important;
+  user-select: none;
+  transition: filter 0.25s ease;
+}
+
+body.wps-active.wps-hover-reveal .wps-revealed .peer-title,
+body.wps-active.wps-hover-reveal.wps-header-hovered #column-center .chat-info .peer-title {
+  filter: blur(0px) !important;
+}
+
+/* ---- Difuminar conversación activa ---- */
+/* La caja de texto queda fuera a propósito: debe seguir siendo usable. */
+body.wps-active.wps-blur-main #column-center .topbar {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+  pointer-events: none;
+}
+
+body.wps-active.wps-blur-main.wps-main-hovered #column-center .topbar {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+  pointer-events: auto;
+}
+
+body.wps-active.wps-blur-main #column-center .bubbles .bubble .bubble-content-wrapper {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+body.wps-active.wps-blur-main #column-center .bubbles .bubble .bubble-content-wrapper.wps-msg-revealed {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+}
+
+/* ---- Ocultar texto escrito al perder el foco ---- */
+body.wps-active.wps-hide-typed .input-message-input.wps-input-blurred {
+  filter: blur(5px);
+  transition: filter 0.2s ease;
+}
+
+/* ---- Ocultar "en línea" / "última vez" / "escribiendo..." ---- */
+body.wps-active.wps-hide-subtitle #column-center .chat-info .bottom {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+body.wps-active.wps-hide-subtitle.wps-header-hovered #column-center .chat-info .bottom {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+}
+
+/* ---- Foto del contacto en el encabezado ---- */
+body.wps-active.wps-hide-header-avatar #column-center .chat-info .person-avatar {
+  filter: blur(var(--wps-blur));
+  transition: filter var(--wps-transition);
+}
+
+body.wps-active.wps-hide-header-avatar.wps-header-hovered #column-center .chat-info .person-avatar {
+  filter: blur(0px) !important;
+}
+
+/* ---- Bloqueo con PIN (Pro) ---- */
+
+/* El overlay es opaco; el blur es una segunda barrera. Telegram monta visores
+   y popups como hijos directos de <body>, por eso se cubren todos. */
+body.wps-locked > :not(#wps-lock-overlay) {
+  filter: blur(24px) !important;
+}

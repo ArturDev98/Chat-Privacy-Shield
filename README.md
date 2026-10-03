@@ -1,7 +1,7 @@
 # 🛡 Chat Privacy Shield
 
-> Visual privacy for WhatsApp Web in shared spaces and offices.  
-> **Not affiliated with WhatsApp, Meta, or Google.**
+> Visual privacy for WhatsApp Web and Telegram Web in shared spaces and offices.  
+> **Not affiliated with WhatsApp, Meta, Telegram, or Google.**
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-4285F4?logo=google-chrome&logoColor=white)](https://chrome.google.com/webstore)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -11,7 +11,7 @@
 
 ## What it does
 
-Chat Privacy Shield blurs your chat list, names, profile photos, and shared images on WhatsApp Web — so coworkers walking by can't see your private conversations. Reveal everything instantly by hovering your mouse or pressing a keyboard shortcut.
+Chat Privacy Shield blurs your chat list, names, profile photos, and shared images on WhatsApp Web and Telegram Web — so coworkers walking by can't see your private conversations. Reveal everything instantly by hovering your mouse or pressing a keyboard shortcut.
 
 ---
 
@@ -34,10 +34,25 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 👁️ **Auto-Blur** | Auto-blur due to inactivity |
 | 🥷🏽 **Hidden online/last seen** | Hide online status, last seen, or typing status |
 | #️⃣ **Hide unread counter** | Hide the "(3)" in the tab title, the number on the tab icon (pinned tabs too) and the one on the Chats icon in the left menu while privacy is on |
-| 🔒 **PIN Lock** ⭐ | Full lock screen — WhatsApp Web asks for your PIN every time it opens |
+| ✈️ **Telegram Web** | The same protection on `web.telegram.org/k`, opt-in from the popup — see [Telegram Web](#telegram-web) |
+| 🔒 **PIN Lock** ⭐ | Full lock screen — WhatsApp Web and Telegram Web ask for your PIN every time they open |
 | ⏱ **Auto-lock** ⭐ | Lock with PIN after 1–30 min of inactivity, or as soon as you leave the tab |
 
 ⭐ = Pro feature. See [Pro](#pro).
+
+---
+
+## Telegram Web
+
+Telegram Web support is off by default, so installing or updating the extension never asks for access to Telegram.
+
+1. Open the extension popup on a Telegram Web tab and click **Turn on for Telegram Web** (or use the **Telegram Web** toggle further down)
+2. Accept Chrome's permission prompt for `web.telegram.org`
+3. Open Telegram Web tabs reload by themselves and get the same protection
+
+Only the **K version** (`web.telegram.org/k`) is supported. Settings are shared with WhatsApp Web, and so is PIN Lock: one license covers both. Status preview and status download are WhatsApp-only.
+
+Turning it off removes the permission. If PIN Lock is on, turning it off asks for your PIN, so the popup can't be used to take the lock off Telegram.
 
 ---
 
@@ -74,7 +89,7 @@ Everything listed above is free except **PIN Lock** and its **Auto-lock** option
 
 **What it does**
 
-A full lock screen covers WhatsApp Web every time the page opens or reloads. Nothing is readable until the right PIN is entered. You can also lock on demand with `Ctrl+Shift+L` or the padlock in the floating panel.
+A full lock screen covers WhatsApp Web (and Telegram Web, if enabled) every time the page opens or reloads. Nothing is readable until the right PIN is entered. You can also lock on demand with `Ctrl+Shift+L` or the padlock in the floating panel.
 
 **Auto-lock**
 
@@ -126,14 +141,14 @@ This extension:
 
 - [ ] Instagram DMs support
 - [ ] Google Chat support  
-- [ ] Telegram Web support
+- [x] Telegram Web support (K version)
 - [ ] Per-platform profiles
 
 ---
 
 ## Legal
 
-Chat Privacy Shield is an independent open-source project not affiliated with WhatsApp LLC, Meta Platforms Inc., or Google LLC. This extension applies purely visual CSS transformations to the browser DOM and does not intercept, read, or modify message data.
+Chat Privacy Shield is an independent open-source project not affiliated with WhatsApp LLC, Meta Platforms Inc., Telegram, or Google LLC. This extension applies purely visual CSS transformations to the browser DOM and does not intercept, read, or modify message data.
 
 ---
 

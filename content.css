@@ -12,10 +12,12 @@
 /* ---- Badge de mensajes no leídos (overlay clonado) ---- */
 /* El clon vive fuera del árbol difuminado, así que nunca hereda el blur
    del item original — ver updateBadgeOverlays() en content.js */
+/* display queda sin !important: content.js lo cambia en línea para ocultarlo. */
 .wps-badge-clone {
-  position: fixed;
-  z-index: 99997;
-  pointer-events: none;
+  position: fixed !important;
+  z-index: 99997 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
   filter: none !important;
   opacity: 1 !important;
   transition: none !important;

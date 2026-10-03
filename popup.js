@@ -1,6 +1,8 @@
 // popup.js - Sincroniza el popup con el content script
 
 const STORAGE_KEY = "wps_settings";
+const TELEGRAM_K_RE = /^https:\/\/web\.telegram\.org\/k\//;
+const TELEGRAM_RE = /^https:\/\/web\.telegram\.org\//;
 
 const defaults = {
   privacyActive: false,
@@ -29,13 +31,15 @@ const defaults = {
 let settings = { ...defaults };
 let proActive = false;
 let pinSet = false;
+let telegramEnabled = false;
+let activeTabUrl = "";
 
 function saveAndSync() {
   chrome.storage.local.set({ [STORAGE_KEY]: settings });
 
-  // Enviar mensaje al tab activo si es WhatsApp
+  // Enviar mensaje al tab activo si es un sitio soportado
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-    if (tab?.url?.includes("web.whatsapp.com")) {
+    if (cpsIsSupportedUrl(tab?.url)) {
       chrome.tabs.sendMessage(tab.id, { action: "sync-settings", settings });
     }
   });
@@ -59,6 +63,7 @@ function applyTranslations() {
 
   document.getElementById("lang-toggle").textContent = lang.toUpperCase();
   renderAutoLockOptions();
+  updateTelegramBanner();
 }
 
 // Las opciones salen de pro.js, que es lo mismo que acepta content.js.
@@ -110,6 +115,7 @@ chrome.storage.local.get(STORAGE_KEY, (data) => {
   if (data[STORAGE_KEY]) settings = { ...defaults, ...data[STORAGE_KEY] };
   updateUI();
   loadProState();
+  loadTelegramState();
 });
 
 // ---- Eventos ----
@@ -493,3 +499,67 @@ document.getElementById("pro-deactivate-btn").addEventListener("click", async ()
   proActive = false;
   updateProUI();
 });
+
+// ---- Telegram Web (permiso opcional) ----
+
+
+async function loadTelegramState() {
+  // activeTab deja leer la URL aunque Telegram aún no tenga permiso.
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  activeTabUrl = tab?.url || "";
+  telegramEnabled = await chrome.permissions.contains({ origins: CPS_TELEGRAM_ORIGINS });
+  document.getElementById("toggle-telegram").checked = telegramEnabled;
+  updateTelegramBanner();
+}
+
+// El interruptor queda al fondo del popup: abierto sobre Telegram, se ofrece arriba.
+function updateTelegramBanner() {
+  const onK = TELEGRAM_K_RE.test(activeTabUrl);
+  const onOtherVersion = !onK && TELEGRAM_RE.test(activeTabUrl);
+  document.getElementById("tg-banner").hidden = !(onOtherVersion || (onK && !telegramEnabled));
+  document.getElementById("tg-banner-btn").hidden = onOtherVersion;
+  document.getElementById("tg-banner-text").textContent =
+    cpsT(onOtherVersion ? "telegramOnlyK" : "telegramBannerText", settings.lang);
+}
+
+async function enableTelegram() {
+  // request() exige el gesto del usuario: tiene que ser el primer await.
+  if (!(await chrome.permissions.request({ origins: CPS_TELEGRAM_ORIGINS }))) {
+    document.getElementById("toggle-telegram").checked = false;
+    showTelegramStatus(cpsT("telegramDenied", settings.lang), true);
+    return;
+  }
+  await finishTelegramChange();
+}
+
+async function finishTelegramChange() {
+  const { enabled } = await chrome.runtime.sendMessage({ action: "telegram-sync" });
+  telegramEnabled = enabled;
+  document.getElementById("toggle-telegram").checked = enabled;
+  showTelegramStatus(cpsT(enabled ? "telegramEnabled" : "telegramDisabled", settings.lang), false);
+  updateTelegramBanner();
+}
+
+function showTelegramStatus(text, isError) {
+  const el = document.getElementById("telegram-status");
+  el.textContent = text;
+  el.classList.toggle("error", !!isError);
+  clearTimeout(showTelegramStatus._timer);
+  showTelegramStatus._timer = setTimeout(() => {
+    el.textContent = "";
+  }, 4000);
+}
+
+document.getElementById("toggle-telegram").addEventListener("change", async (e) => {
+  if (e.target.checked) {
+    await enableTelegram();
+    return;
+  }
+  // Quitar Telegram con el candado armado lo dejaría sin bloqueo.
+  e.target.checked = true;
+  if (proActive && pinSet && settings.pinLockEnabled && !(await askCurrentPin())) return;
+  await chrome.permissions.remove({ origins: CPS_TELEGRAM_ORIGINS });
+  await finishTelegramChange();
+});
+
+document.getElementById("tg-banner-btn").addEventListener("click", enableTelegram);

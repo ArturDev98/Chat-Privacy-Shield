@@ -606,9 +606,11 @@
     "display", "alignItems", "justifyContent", "textAlign", "whiteSpace",
   ];
 
+  // Sin las clases del sitio: sus reglas (Telegram fuerza position y display
+  // !important) le ganan al CSS de la extensión. El aspecto va copiado en línea.
   function cloneBadgeWithComputedStyle(badge) {
     const clone = badge.cloneNode(true);
-    clone.classList.add("wps-badge-clone");
+    clone.className = "wps-badge-clone";
     const computed = window.getComputedStyle(badge);
     BADGE_STYLE_PROPS.forEach((prop) => {
       clone.style[prop] = computed[prop];
@@ -681,10 +683,11 @@
       }
 
       // Con tamaño válido aún puede estar tapado por otra sección dibujada encima.
+      // Una capa de la propia fila (el ripple de Telegram) no cuenta como tapa.
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       const topElement = document.elementFromPoint(cx, cy);
-      const actuallyOnTop = topElement && (badge.contains(topElement) || topElement.contains(badge));
+      const actuallyOnTop = topElement && (item.contains(topElement) || topElement.contains(badge));
       if (!actuallyOnTop) {
         if (existingClone) existingClone.style.display = "none";
         return;
@@ -901,16 +904,15 @@
 
   // ---- Ocultar el contador de no leídos de la pestaña ----
   // El sitio lo pone en el título y lo dibuja en el favicon; una pestaña
-  // fijada solo muestra el favicon.
-  const TITLE_COUNT_RE = site.titleCountRe;
+  // fijada solo muestra el favicon. Cómo se ve el contador lo sabe el adaptador.
   const ICON_SELECTOR = 'link[rel~="icon"]';
   let siteTitle = null; // último título que puso el sitio, con su contador
   const siteIconHrefs = new WeakMap(); // <link> → último href que le puso el sitio
   const ownIconHrefs = new WeakMap(); // <link> → href que le puso la extensión
 
-  // Este script corre con WhatsApp aún en su pantalla de carga: el favicon
-  // todavía no lleva contador y sirve de versión limpia.
-  const cleanIconHref = TITLE_COUNT_RE.test(document.title)
+  // Este script corre con el sitio aún cargando: el favicon todavía no lleva
+  // contador y sirve de versión limpia.
+  const cleanIconHref = site.titleHasCount(document.title)
     ? null
     : document.head.querySelector(ICON_SELECTOR)?.getAttribute("href") ?? null;
 
@@ -923,7 +925,7 @@
     if (!textNode || textNode.nodeType !== Node.TEXT_NODE) return;
     if (siteTitle === null) siteTitle = textNode.data;
 
-    const wanted = tabCountHidden() ? siteTitle.replace(TITLE_COUNT_RE, "") : siteTitle;
+    const wanted = tabCountHidden() ? site.cleanTitle(siteTitle) : siteTitle;
     // Se edita el nodo de texto en vez de document.title: eso no genera un
     // childList, y el observer sabe que cada childList es una escritura del sitio.
     if (textNode.data !== wanted) textNode.data = wanted;
@@ -941,7 +943,7 @@
       } else if (ownIconHrefs.has(link)) {
         // Si el sitio escribió el mismo href que el nuestro no se vio; el título
         // dice si hoy toca el favicon con contador o el limpio.
-        wanted = TITLE_COUNT_RE.test(siteTitle ?? "") ? siteIconHrefs.get(link) : cleanIconHref;
+        wanted = site.titleHasCount(siteTitle ?? "") ? siteIconHrefs.get(link) : cleanIconHref;
         ownIconHrefs.delete(link);
       } else {
         return; // nunca se tocó: es del sitio tal cual
@@ -957,10 +959,12 @@
 
   // Contador del menú lateral del sitio: solo se marcan los que muestran un número.
   const NAV_COUNT_SELECTOR = site.navCountSelector;
+  // "3", "99+" o abreviado como "1.2K" (Telegram).
+  const NAV_COUNT_RE = /^\d+(\.\d+)?[KMB]?\+?$/;
 
   function markNavCounts() {
     document.querySelectorAll(NAV_COUNT_SELECTOR).forEach((el) => {
-      el.classList.toggle("wps-nav-count", /^\d+\+?$/.test(el.textContent.trim()));
+      el.classList.toggle("wps-nav-count", NAV_COUNT_RE.test(el.textContent.trim()));
     });
   }
 

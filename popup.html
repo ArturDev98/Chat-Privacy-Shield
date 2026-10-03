@@ -603,6 +603,27 @@
     [dir="rtl"] .kbd-group { flex-direction: row-reverse; }
     [dir="rtl"] .disclaimer { direction: rtl; }
     [dir="rtl"] .status-bar { flex-direction: row-reverse; }
+
+    .tg-banner {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 18px;
+      background: rgba(51,144,236,0.12);
+      border-bottom: 1px solid rgba(51,144,236,0.25);
+    }
+
+    .tg-banner[hidden],
+    .tg-banner .mini-btn[hidden] {
+      display: none;
+    }
+
+    .tg-banner p {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.75);
+    }
   </style>
 </head>
 <body>
@@ -611,7 +632,7 @@
     <div class="logo">🛡</div>
     <div class="header-text">
       <h1>Chat Privacy Shield</h1>
-      <p>web.whatsapp.com</p>
+      <p>WhatsApp Web · Telegram Web</p>
     </div>
     <button id="lang-toggle" class="lang-btn">EN</button>
   </div>
@@ -623,6 +644,11 @@
       <div class="toggle-track"></div>
       <div class="toggle-thumb"></div>
     </label>
+  </div>
+
+  <div class="tg-banner" id="tg-banner" hidden>
+    <p id="tg-banner-text"></p>
+    <button type="button" id="tg-banner-btn" class="mini-btn" data-i18n="telegramBannerButton">Turn on for Telegram Web</button>
   </div>
 
   <div class="section">
@@ -851,6 +877,19 @@
     </div>
   </div>
 
+  <div class="schedule-section">
+    <div class="schedule-header">
+      <div class="schedule-title">Telegram Web</div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-telegram">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+    <p class="pin-hint" data-i18n="telegramHint">Also protect web.telegram.org/k. Chrome will ask for access to that site.</p>
+    <div class="pin-status" id="telegram-status"></div>
+  </div>
+
   <div class="pin-section">
     <div class="pin-header">
       <div class="pin-title">
@@ -864,7 +903,7 @@
       </label>
     </div>
 
-    <p class="pin-hint" id="pin-hint" data-i18n="pinLockHint">Ask for a PIN every time WhatsApp Web opens.</p>
+    <p class="pin-hint" id="pin-hint" data-i18n="pinLockHint">Ask for a PIN every time WhatsApp Web or Telegram Web opens.</p>
 
     <div class="pin-auto" id="pin-auto">
       <div class="row">
@@ -909,7 +948,8 @@
 
   <div class="disclaimer">
     <a href="https://web.whatsapp.com" target="_blank" class="open-wa" data-i18n="openWhatsApp">Open WhatsApp Web →</a>
-    <p class="disclaimer-text"><span data-i18n="disclaimer">Not affiliated with WhatsApp, Meta, or Google.</span><br><span data-i18n="disclaimer2">No data is collected or transmitted.</span></p>
+    <a href="https://web.telegram.org/k/" target="_blank" class="open-wa" data-i18n="openTelegram">Open Telegram Web →</a>
+    <p class="disclaimer-text"><span data-i18n="disclaimer">Not affiliated with WhatsApp, Meta, Telegram, or Google.</span><br><span data-i18n="disclaimer2">No data is collected or transmitted.</span></p>
   </div>
 
   <div id="pin-dialog">
@@ -926,6 +966,7 @@
 
   <script src="i18n.js"></script>
   <script src="pro.js"></script>
+  <script src="sites.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

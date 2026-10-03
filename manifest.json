@@ -2,14 +2,19 @@
   "manifest_version": 3,
   "name": "Chat Privacy Shield",
   "short_name": "CPS",
-  "version": "1.15.0",
-  "description": "Blur and hide chats, names, and shared images for visual privacy in shared spaces. Not affiliated with WhatsApp or Meta.",
+  "version": "2.0.0",
+  "description": "Blur and hide chats, names, and shared images on WhatsApp Web and Telegram Web. Not affiliated with WhatsApp, Meta or Telegram.",
   "permissions": [
     "storage",
-    "commands"
+    "commands",
+    "scripting",
+    "activeTab"
   ],
   "host_permissions": [
     "https://web.whatsapp.com/*"
+  ],
+  "optional_host_permissions": [
+    "https://web.telegram.org/*"
   ],
   "content_scripts": [
     {
