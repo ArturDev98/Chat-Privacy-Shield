@@ -686,7 +686,8 @@
   }
 
   function updateBadgeOverlays() {
-    if (!settings.privacyActive || !settings.showBadges) {
+    // Con la lista legible el contador real ya se ve: la copia sería un duplicado.
+    if (!settings.privacyActive || !settings.showBadges || settings.hidePreview) {
       clearBadgeOverlays();
       stopBadgeLoop();
       return;

@@ -112,7 +112,16 @@ body.wps-locked > :not(#wps-lock-overlay) {
   filter: blur(24px) !important;
 }
 
-/* ---- Ocultar la vista previa del último mensaje (el badge queda visible) ---- */
+/* ---- Ocultar vista previa: lista legible, solo el mensaje difuminado ---- */
+body.wps-active.wps-hide-preview #column-left .chatlist .chatlist-chat {
+  filter: none;
+  opacity: 1;
+}
+
+body.wps-active.wps-hide-preview #column-left .chatlist {
+  pointer-events: auto;
+}
+
 body.wps-active.wps-hide-preview #column-left .chatlist .dialog-subtitle > :not(.dialog-subtitle-badge) {
   filter: blur(5px);
   transition: filter 0.25s ease;

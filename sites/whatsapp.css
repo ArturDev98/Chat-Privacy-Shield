@@ -271,12 +271,37 @@ body.wps-rule-main-blur [data-testid="conversation-panel-messages"] [data-testid
   opacity: 1 !important;
 }
 
-/* ---- Ocultar la vista previa del último mensaje (el contador queda visible) ---- */
+/* ---- Ocultar vista previa: lista legible, solo el mensaje difuminado ---- */
+/* Sustituye al difuminado de la fila entera; nombres y fotos siguen sus propias opciones. */
+body.wps-active.wps-hide-preview #pane-side [data-testid^="list-item-"],
+body.wps-active.wps-hide-preview [data-testid="archived-chatlist"] [data-testid^="list-item-"] {
+  filter: none;
+  opacity: 1;
+}
+
+body.wps-active.wps-hide-preview #pane-side,
+body.wps-active.wps-hide-preview [data-testid="archived-chatlist"] {
+  pointer-events: auto;
+}
+
 body.wps-active.wps-hide-preview [data-testid="cell-frame-secondary"] span:not([data-testid="icon-unread-count"]):not([data-icon]):not(:has([data-testid="icon-unread-count"])) {
   filter: blur(5px);
   transition: filter 0.25s ease;
 }
 
-body.wps-active.wps-hover-reveal .wps-revealed [data-testid="cell-frame-secondary"] span {
+body.wps-active.wps-hide-preview.wps-hide-names [data-testid="cell-frame-title"] span {
+  filter: blur(6px);
+  transition: filter 0.25s ease;
+}
+
+/* Los emoji del nombre y del mensaje también son <img>: solo se difumina la foto. */
+body.wps-active.wps-hide-preview.wps-hide-avatars [data-testid^="list-item-"] img:not(:is([data-testid="cell-frame-title"], [data-testid="cell-frame-secondary"]) img) {
+  filter: blur(12px);
+  transition: filter 0.25s ease;
+}
+
+body.wps-active.wps-hover-reveal .wps-revealed [data-testid="cell-frame-secondary"] span,
+body.wps-active.wps-hover-reveal .wps-revealed [data-testid="cell-frame-title"] span,
+body.wps-active.wps-hover-reveal .wps-revealed img {
   filter: none !important;
 }

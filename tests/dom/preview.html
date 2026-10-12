@@ -2,6 +2,8 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="../../content.css">
 <link rel="stylesheet" href="../../sites/whatsapp.css">
+<!-- Con tiempo virtual las transiciones no avanzan y getComputedStyle daría el valor inicial. -->
+<style>* { transition: none !important; }</style>
 <body>
 <pre id="results"></pre>
 <script src="chrome-stub.js"></script>
@@ -13,19 +15,43 @@
   mountWhatsApp(["Trabajo"]);
   const sec = rowOf("Trabajo").querySelector('[data-testid="cell-frame-secondary"]');
   sec.insertAdjacentHTML("beforeend", '<span data-testid="icon-unread-count" style="display:inline-block;width:20px;height:20px">3</span>');
-  __cpsStore.wps_settings = { lang: "en", privacyActive: true, showBadges: true, hidePreview: true, panelVisible: true };
+  __cpsStore.wps_settings = { lang: "en", privacyActive: true, showBadges: true, hidePreview: true,
+    hideNames: false, hideAvatars: false, panelVisible: true };
 </script>
 <script src="../../profiles.js"></script>
 <script src="../../rules.js"></script>
 <script src="../../sites/whatsapp.js"></script>
 <script src="../../content.js"></script>
 <script>
+const row = () => rowOf("Trabajo");
+const blurred = (el) => getComputedStyle(el).filter.includes("blur") && !getComputedStyle(el).filter.includes("blur(0px)");
+const nameSpan = () => row().querySelector('[data-testid="cell-frame-title"] span');
 const visibleClone = () => [...document.querySelectorAll(".wps-badge-clone")].some((c) => c.style.display !== "none");
 (async () => {
   await settle(300);
   check("clase preview", document.body.classList.contains("wps-hide-preview"));
-  check("preview difuminado", getComputedStyle(sec.querySelector("span")).filter.includes("blur"));
-  check("contador sin difuminar", !getComputedStyle(sec.querySelector('[data-testid="icon-unread-count"]')).filter.includes("blur"));
+  // Lista legible: la fila no se difumina entera, solo el mensaje.
+  check("fila sin difuminar", !blurred(row()));
+  check("nombre a la vista", !blurred(nameSpan()));
+  check("preview difuminado", blurred(sec.querySelector("span")));
+  check("contador sin difuminar", !blurred(sec.querySelector('[data-testid="icon-unread-count"]')));
+  check("lista clicable", getComputedStyle(document.getElementById("pane-side")).pointerEvents !== "none");
+  check("sin copias de contador en lista legible", !visibleClone());
+
+  document.getElementById("wps-names").click();
+  await settle(100);
+  check("ocultar nombres difumina el nombre en la lista", blurred(nameSpan()));
+
+  row().classList.add("wps-revealed");
+  document.getElementById("wps-hover").click();
+  await settle(100);
+  check("revelar muestra el mensaje", !blurred(sec.querySelector("span")));
+  row().classList.remove("wps-revealed");
+  document.getElementById("wps-hover").click();
+
+  document.getElementById("wps-hide-preview").click();
+  await settle(100);
+  check("sin la opción la fila vuelve a difuminarse entera", blurred(row()));
   await settle(1500);
   check("contador fijo", visibleClone());
   document.getElementById("pane-side").style.display = "none";
