@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="wa-fixture.js"></script>
+<script src="../../i18n.js"></script>
+<script src="../../pro.js"></script>
+<script>
+  cpsProGet = async () => ({ active: true, serial: 1 });
+  mountWhatsApp(["Trabajo", "Familia"]);
+  __cpsStore.wps_settings = { lang: "en", privacyActive: true, panelVisible: true };
+  __cpsStore.cps_chat_rules = { "whatsapp:Familia": { mode: "hide", lastSeen: Date.now() } };
+</script>
+<script src="../../profiles.js"></script>
+<script src="../../rules.js"></script>
+<script src="../../sites/whatsapp.js"></script>
+<script src="../../content.js"></script>
+<script>
+(async () => {
+  await settle(1000);
+  let count = 0;
+  new MutationObserver((records) => { count += records.length; })
+    .observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+  await settle(2000);
+  check("sin mutaciones en reposo (" + count + ")", count < 10);
+  done();
+})();
+</script>
+</body>

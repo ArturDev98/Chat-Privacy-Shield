@@ -539,6 +539,11 @@
     updatePanelUI();
   }
 
+  // Reasignar textContent reemplaza el nodo de texto aunque sea igual, y eso es una mutación.
+  function setTextIfChanged(el, text) {
+    if (el.textContent !== text) el.textContent = text;
+  }
+
   // ---- Sincronizar UI del panel con estado ----
   function updatePanelUI() {
     if (!panel) return;
@@ -600,12 +605,12 @@
     pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
     if (hiddenBtn) {
       hiddenBtn.classList.toggle("wps-hidden", !rules.hasHidden());
-      hiddenBtn.textContent = rules.isRevealed() ? "🐵" : "🙈";
+      setTextIfChanged(hiddenBtn, rules.isRevealed() ? "🐵" : "🙈");
       hiddenBtn.setAttribute("data-tip", cpsT(rules.isRevealed() ? "hiddenHideAll" : "hiddenShowAll", settings.lang));
     }
     if (profileBtn) {
       const office = settings.activeProfile === "office";
-      profileBtn.textContent = office ? "🏢" : "🏠";
+      setTextIfChanged(profileBtn, office ? "🏢" : "🏠");
       profileBtn.setAttribute("data-tip", `${cpsT("profileLabel", settings.lang)}: ${cpsT(office ? "profileOffice" : "profileHome", settings.lang)}`);
     }
 
@@ -613,7 +618,7 @@
     lockNowBtn?.classList.toggle("wps-hidden", !pinLockArmed());
     lockNowBtn?.setAttribute("data-tip", cpsT("panelTooltipLockNow", settings.lang));
     if (langBtn) {
-      langBtn.textContent = settings.lang.toUpperCase();
+      setTextIfChanged(langBtn, settings.lang.toUpperCase());
       langBtn.setAttribute("data-tip", cpsT("language", settings.lang));
     }
   }

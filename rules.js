@@ -61,6 +61,21 @@ const CPS_RULES_INERT = {
   hasHidden: () => false, modeOf: () => null, setRule() {},
 };
 
+// Elementos propios: sus cambios no son de WhatsApp y re-aplicar por ellos haría un bucle.
+const CPS_OWN_UI = "#wps-panel, #wps-restore-hint, #wps-lock-overlay, #cps-rule-btn, #cps-rule-menu, #cps-rule-tip, #cps-hidden-cover, .wps-badge-clone";
+
+function cpsIsOwnNode(node) {
+  const el = node.nodeType === 1 ? node : node.parentElement;
+  return !!el?.closest?.(CPS_OWN_UI);
+}
+
+function cpsIsSiteMutation(record) {
+  if (cpsIsOwnNode(record.target)) return false;
+  if (record.type !== "childList") return true;
+  const nodes = [...record.addedNodes, ...record.removedNodes];
+  return nodes.length === 0 || !nodes.every(cpsIsOwnNode);
+}
+
 function cpsCreateRules(core, site) {
   if (!site || !site.ruleRowSelector) return CPS_RULES_INERT;
 
@@ -140,7 +155,9 @@ function cpsCreateRules(core, site) {
     document.addEventListener("mouseover", onHover, { passive: true });
     document.addEventListener("click", closeMenu);
     // title cubre las filas que la lista virtualizada recicla para otro chat.
-    new MutationObserver(schedule).observe(document.body, {
+    new MutationObserver((records) => {
+      if (records.some(cpsIsSiteMutation)) schedule();
+    }).observe(document.body, {
       childList: true, subtree: true, attributes: true, attributeFilter: ["title"],
     });
   }
