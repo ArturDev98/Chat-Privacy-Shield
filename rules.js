@@ -90,6 +90,7 @@ function cpsCreateRules(core, site) {
     });
     applyOpenChat();
     if (touched) cpsStorageSet({ [CPS_RULES_KEY]: rules });
+    core.onApplied?.();
   }
 
   function applyOpenChat() {

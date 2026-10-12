@@ -473,7 +473,8 @@ body.wps-locked #wps-restore-hint {
 
 /* Restablecer el PIN con la licencia */
 
-#wps-lock-forgot {
+#wps-lock-forgot,
+#wps-lock-cancel {
   display: block;
   margin: 14px auto 0;
   padding: 4px 6px;
@@ -486,7 +487,8 @@ body.wps-locked #wps-restore-hint {
   cursor: pointer;
 }
 
-#wps-lock-forgot:hover {
+#wps-lock-forgot:hover,
+#wps-lock-cancel:hover {
   color: #25d366;
 }
 

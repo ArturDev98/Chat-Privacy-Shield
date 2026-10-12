@@ -1,0 +1,71 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>(3) WhatsApp</title>
+<body>
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="wa-fixture.js"></script>
+<script src="../../i18n.js"></script>
+<script src="../../pro.js"></script>
+<script>
+  // Pro real exige una licencia firmada: se simula solo la consulta.
+  cpsProGet = async () => ({ active: true, serial: 1 });
+  mountWhatsApp(["Trabajo", "Familia"]);
+  __cpsStore.wps_settings = { lang: "en", privacyActive: false, panelVisible: true };
+  __cpsStore.cps_chat_rules = { "whatsapp:Familia": { mode: "hide", lastSeen: 0 } };
+</script>
+<script src="../../profiles.js"></script>
+<script src="../../rules.js"></script>
+<script src="../../sites/whatsapp.js"></script>
+<script src="../../content.js"></script>
+<script>
+const type = (digits) => [...digits].forEach((d) => document.querySelector(`#wps-lock-overlay [data-key="${d}"]`).click());
+const showBtn = () => document.querySelector("#cps-hidden-cover button");
+(async () => {
+  // Una iteración: con 150 000 el tiempo virtual de Edge avanza antes de que termine.
+  const salt = "00112233445566778899aabbccddeeff";
+  const hash = await cpsPinDerive("1234", salt, 1);
+  chrome.storage.local.set({ cps_pin: { salt, hash, iterations: 1, length: 4, createdAt: 0 } });
+  await settle(500);
+  check("escondido al cargar", rowOf("Familia").classList.contains("cps-rule-hide"));
+  check("contador forzado", !/^\(\d+\)/.test(document.title));
+  check("botón de panel visible", !document.getElementById("wps-hidden-toggle").classList.contains("wps-hidden"));
+
+  openChat("Familia");
+  await settle(100);
+  showBtn().click();
+  await settle(50);
+  check("reveal abre el teclado", !!document.getElementById("wps-lock-overlay") && !document.body.classList.contains("wps-locked"));
+  type("9999");
+  await settle(800);
+  check("PIN mal no revela", rowOf("Familia").classList.contains("cps-rule-hide"));
+
+  document.getElementById("wps-lock-cancel").click();
+  await settle(50);
+  check("cancelar", !document.getElementById("wps-lock-overlay") && rowOf("Familia").classList.contains("cps-rule-hide"));
+
+  await settle(31000);
+  document.getElementById("wps-hidden-toggle").click();
+  await settle(50);
+  type("1234");
+  await settle(800);
+  check("reveal con PIN", !document.getElementById("wps-lock-overlay") && !rowOf("Familia").classList.contains("cps-rule-hide")
+    && !document.getElementById("cps-hidden-cover"));
+
+  document.getElementById("wps-hidden-toggle").click();
+  await settle(100);
+  check("botón vuelve a esconder", rowOf("Familia").classList.contains("cps-rule-hide"));
+
+  document.getElementById("wps-hidden-toggle").click();
+  await settle(50);
+  type("1234");
+  await settle(800);
+  check("revelado de nuevo", !rowOf("Familia").classList.contains("cps-rule-hide"));
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "L", ctrlKey: true, shiftKey: true, bubbles: true }));
+  await settle(100);
+  check("lock re-esconde", rowOf("Familia").classList.contains("cps-rule-hide") && !!document.getElementById("cps-hidden-cover"));
+  done();
+})();
+</script>
+</body>

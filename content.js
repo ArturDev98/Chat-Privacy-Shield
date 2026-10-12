@@ -39,6 +39,8 @@
   // Estado del bloqueo con PIN. "Desbloqueado" vive solo en memoria: recargar
   // la página vuelve a pedir el PIN, que es el disparador elegido.
   let isLocked = false;
+  // "reveal": el mismo teclado del candado, pero solo para mostrar los chats escondidos.
+  let lockPurpose = "unlock";
   let lockEntry = "";
   let lockPinLength = CPS_PIN_MIN;
   let lockCooldownTimer = null;
@@ -62,6 +64,11 @@
     getSettings: () => settings,
     isPro: () => proActive,
     pinConfigured: () => pinConfigured,
+    requestReveal,
+    onApplied: () => {
+      updatePanelUI();
+      applyTabCounter();
+    },
   }, site);
 
   // ---- Cargar settings desde chrome.storage ----
@@ -363,6 +370,9 @@
         </svg>
       </button>
 
+      <!-- Mostrar/volver a esconder los chats escondidos (Pro) -->
+      <button class="wps-btn wps-hidden" id="wps-hidden-toggle" data-tip="" style="font-size:13px;">🙈</button>
+
       <!-- Perfil Oficina/Casa -->
       <button class="wps-btn" id="wps-profile" data-tip="" style="font-size:13px;"></button>
 
@@ -485,6 +495,11 @@
       saveSettings();
     });
 
+    document.getElementById("wps-hidden-toggle").addEventListener("click", () => {
+      if (rules.isRevealed()) rules.conceal();
+      else requestReveal();
+    });
+
     document.getElementById("wps-profile").addEventListener("click", () => {
       switchProfile(settings.activeProfile === "office" ? "home" : "office");
     });
@@ -528,6 +543,7 @@
     const hideTabCountBtn = document.getElementById("wps-hide-tab-count");
     const lockNowBtn = document.getElementById("wps-lock-now");
     const profileBtn = document.getElementById("wps-profile");
+    const hiddenBtn = document.getElementById("wps-hidden-toggle");
     const langBtn = document.getElementById("wps-lang");
     const pinBtn = document.getElementById("wps-pin");
     const slider = document.getElementById("wps-blur-slider");
@@ -565,6 +581,11 @@
     hideHeaderAvatarBtn?.setAttribute("data-tip", cpsT("panelTooltipHideHeaderAvatar", settings.lang));
     hideTabCountBtn?.setAttribute("data-tip", cpsT("panelTooltipHideTabCount", settings.lang));
     pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
+    if (hiddenBtn) {
+      hiddenBtn.classList.toggle("wps-hidden", !rules.hasHidden());
+      hiddenBtn.textContent = rules.isRevealed() ? "🐵" : "🙈";
+      hiddenBtn.setAttribute("data-tip", cpsT(rules.isRevealed() ? "hiddenHideAll" : "hiddenShowAll", settings.lang));
+    }
     if (profileBtn) {
       const office = settings.activeProfile === "office";
       profileBtn.textContent = office ? "🏢" : "🏠";
@@ -679,7 +700,7 @@
 
     let found = false;
     items.forEach((item) => {
-      if (site.skipBadgeItem(item)) {
+      if (site.skipBadgeItem(item) || item.classList.contains("cps-rule-hide")) {
         const staleClone = item._wpsBadgeClone;
         if (staleClone) staleClone.style.display = "none";
         return;
@@ -902,6 +923,8 @@
     : document.head.querySelector(ICON_SELECTOR)?.getAttribute("href") ?? null;
 
   function tabCountHidden() {
+    // El contador incluye los no leídos de los chats escondidos: delataría que existen.
+    if (rules.hasHidden() && !rules.isRevealed()) return true;
     return settings.privacyActive && settings.hideTabCount;
   }
 
@@ -1153,6 +1176,8 @@
   });
 
   function lockNow() {
+    rules.conceal();
+    if (lockPurpose === "reveal") closeRevealPrompt();
     if (!pinLockArmed() || isLocked) return;
     isLocked = true;
     lockEntry = "";
@@ -1174,22 +1199,40 @@
     restartAutoLock();
   }
 
+  function requestReveal() {
+    if (isLocked || !(proActive && pinConfigured)) return;
+    lockPurpose = "reveal";
+    lockEntry = "";
+    buildLockOverlay();
+    refreshLockCooldown();
+  }
+
+  function closeRevealPrompt() {
+    lockPurpose = "unlock";
+    lockEntry = "";
+    clearInterval(lockCooldownTimer);
+    lockCooldownTimer = null;
+    document.getElementById("wps-lock-overlay")?.remove();
+  }
+
   const LOCK_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0", "ok"];
 
   function buildLockOverlay() {
     if (document.getElementById("wps-lock-overlay")) return;
 
+    const reveal = lockPurpose === "reveal";
     const overlay = document.createElement("div");
     overlay.id = "wps-lock-overlay";
     overlay.dir = cpsIsRTL(settings.lang) ? "rtl" : "ltr";
     overlay.innerHTML = `
       <div id="wps-lock-card">
         <div id="wps-lock-shield">🛡</div>
-        <h2 id="wps-lock-title">${cpsT("lockScreenTitle", settings.lang)}</h2>
-        <p id="wps-lock-sub">${cpsT("lockScreenSubtitle", settings.lang)}</p>
+        <h2 id="wps-lock-title">${cpsT(reveal ? "hiddenShowAll" : "lockScreenTitle", settings.lang)}</h2>
+        <p id="wps-lock-sub">${cpsT(reveal ? "revealTitle" : "lockScreenSubtitle", settings.lang)}</p>
         <div id="wps-lock-dots"></div>
         <div id="wps-lock-error"></div>
         <div id="wps-lock-keypad"></div>
+        <button type="button" id="wps-lock-cancel" class="${reveal ? "" : "wps-hidden"}">${cpsT("pinCancel", settings.lang)}</button>
         <button type="button" id="wps-lock-forgot" class="wps-hidden">${cpsT("lockForgotPin", settings.lang)}</button>
         <div id="wps-lock-reset" class="wps-hidden">
           <p id="wps-lock-reset-hint">${cpsT("lockResetHint", settings.lang)}</p>
@@ -1218,6 +1261,7 @@
       if (btn) handleLockKey(btn.dataset.key);
     });
 
+    overlay.querySelector("#wps-lock-cancel").addEventListener("click", closeRevealPrompt);
     overlay.querySelector("#wps-lock-forgot").addEventListener("click", () => showLockResetView(true));
     overlay.querySelector("#wps-lock-reset-cancel").addEventListener("click", () => showLockResetView(false));
     overlay.querySelector("#wps-lock-reset-ok").addEventListener("click", submitLockReset);
@@ -1230,7 +1274,8 @@
   // El enlace aparece recién tras varios fallos: no conviene anunciar la salida
   // antes de que haga falta.
   async function refreshForgotVisibility() {
-    lockForgotVisible = (await cpsPinFailCount()) >= LOCK_FORGOT_AFTER_FAILS;
+    // Restablecer el PIN es salida del candado, no de "mostrar escondidos".
+    lockForgotVisible = lockPurpose !== "reveal" && (await cpsPinFailCount()) >= LOCK_FORGOT_AFTER_FAILS;
     const btn = document.getElementById("wps-lock-forgot");
     const resetOpen = !document.getElementById("wps-lock-reset")?.classList.contains("wps-hidden");
     btn?.classList.toggle("wps-hidden", !lockForgotVisible || resetOpen);
@@ -1315,7 +1360,12 @@
 
     if (await cpsPinVerify(entry)) {
       await cpsPinResetFails();
-      unlockNow();
+      if (lockPurpose === "reveal") {
+        closeRevealPrompt();
+        rules.reveal();
+      } else {
+        unlockNow();
+      }
       return;
     }
 
@@ -1370,8 +1420,14 @@
   // Mientras está bloqueado el teclado es del overlay: WhatsApp no debe recibir
   // nada, ni atajos ni texto que termine en el compositor.
   window.addEventListener("keydown", (e) => {
-    if (!isLocked) return;
+    const revealing = lockPurpose === "reveal" && document.getElementById("wps-lock-overlay");
+    if (!isLocked && !revealing) return;
     e.stopImmediatePropagation();
+    if (revealing && e.key === "Escape") {
+      e.preventDefault();
+      closeRevealPrompt();
+      return;
+    }
 
     // El campo de la licencia necesita escribir y pegar con normalidad; se le
     // deja el evento, pero sin dejar que llegue a WhatsApp.
