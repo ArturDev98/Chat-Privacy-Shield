@@ -1,0 +1,39 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<pre id="results"></pre>
+<div id="app"><div id="pane-side"></div></div>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="fake-clock.js"></script>
+<script>
+  setFakeTime(2026, 9, 12, 16, 59, 50);
+  __cpsStore.wps_settings = { privacyActive: false, hideNames: false, scheduleEnabled: true,
+    scheduleStart: "09:00", scheduleEnd: "17:00", lang: "en", panelVisible: true };
+</script>
+<script src="../../i18n.js"></script>
+<script src="../../pro.js"></script>
+<script src="../../profiles.js"></script>
+<script src="../../rules.js"></script>
+<script src="../../sites/whatsapp.js"></script>
+<script src="../../content.js"></script>
+<script>
+(async () => {
+  await settle(300);
+  const saved = () => __cpsStore.wps_settings;
+  check("migra al cargar", !!saved().profiles && saved().activeProfile === "office");
+  check("office activo enciende la privacidad", document.body.classList.contains("wps-active"));
+
+  setFakeTime(2026, 9, 12, 17, 0, 10);
+  await settle(21000);
+  check("cambio por horario", saved().activeProfile === "home" && !document.body.classList.contains("wps-active"));
+
+  document.getElementById("wps-profile").click();
+  await settle(100);
+  check("cambio manual", saved().activeProfile === "office");
+  await settle(21000);
+  check("cambio manual respetado", saved().activeProfile === "office");
+  done();
+})();
+</script>
+</body>

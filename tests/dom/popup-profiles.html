@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="popup-loader.js"></script>
+<script>
+(async () => {
+  __cpsStore.wps_settings = { privacyActive: false, hideNames: false, scheduleEnabled: true,
+    scheduleStart: "00:00", scheduleEnd: "23:59", lang: "en" };
+  await loadPopup();
+  await settle(200);
+  check("selector muestra office", document.getElementById("profile-office")?.classList.contains("active"));
+  check("horario migrado en el popup", document.getElementById("toggle-schedule").checked === true);
+
+  document.getElementById("profile-home").click();
+  await settle(100);
+  check("click en Casa guarda", __cpsStore.wps_settings.activeProfile === "home");
+
+  const fromPage = { ...__cpsStore.wps_settings, activeProfile: "office", hideNames: true };
+  chrome.storage.local.set({ wps_settings: fromPage });
+  await settle(100);
+  const names = document.getElementById("toggle-names");
+  names.checked = !names.checked;
+  names.dispatchEvent(new Event("change"));
+  await settle(100);
+  check("popup no pisa el perfil cambiado por la página", __cpsStore.wps_settings.activeProfile === "office");
+  check("schedule guardado en profileSchedule", __cpsStore.wps_settings.profileSchedule?.enabled === true
+    && !("scheduleEnabled" in __cpsStore.wps_settings));
+  done();
+})();
+</script>
+</body>

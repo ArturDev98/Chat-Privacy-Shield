@@ -20,9 +20,7 @@
     hideTypedText: false,
     autoBlurEnabled: false,
     hideChatSubtitle: false,
-    scheduleEnabled: false,
-    scheduleStart: "09:00",
-    scheduleEnd: "17:00",
+    hidePreview: false,
     panelPosition: null,
     hintPosition: null,
     blurOnTabHidden: false,
@@ -32,6 +30,7 @@
     autoLockMinutes: 0,
     lockOnTabHidden: false,
     lang: "en",
+    ...CPS_PROFILE_DEFAULTS,
   };
 
   let settings = { ...defaults };
@@ -63,9 +62,10 @@
   function loadSettings(cb) {
     try {
       chrome.storage.local.get(STORAGE_KEY, (data) => {
-        if (data[STORAGE_KEY]) {
-          settings = { ...defaults, ...data[STORAGE_KEY] };
-        }
+        const stored = data[STORAGE_KEY];
+        settings = cpsProfilesMigrate({ ...defaults, ...stored }, new Date());
+        // Primera carga tras actualizar desde 2.0: se guarda ya convertido.
+        if (!stored?.profiles) saveSettings();
         cb && cb();
       });
     } catch {
@@ -74,6 +74,7 @@
   }
 
   function saveSettings() {
+    settings = cpsProfilesCapture(settings);
     try {
       chrome.storage.local.set({ [STORAGE_KEY]: settings });
     } catch {}
@@ -356,6 +357,9 @@
         </svg>
       </button>
 
+      <!-- Perfil Oficina/Casa -->
+      <button class="wps-btn" id="wps-profile" data-tip="" style="font-size:13px;"></button>
+
       <!-- Bloquear ahora con PIN (Pro) -->
       <button class="wps-btn wps-hidden" id="wps-lock-now" data-tip="${cpsT('panelTooltipLockNow', settings.lang)}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -475,6 +479,10 @@
       saveSettings();
     });
 
+    document.getElementById("wps-profile").addEventListener("click", () => {
+      switchProfile(settings.activeProfile === "office" ? "home" : "office");
+    });
+
     document.getElementById("wps-lock-now").addEventListener("click", () => {
       lockNow();
     });
@@ -513,6 +521,7 @@
     const hideHeaderAvatarBtn = document.getElementById("wps-hide-header-avatar");
     const hideTabCountBtn = document.getElementById("wps-hide-tab-count");
     const lockNowBtn = document.getElementById("wps-lock-now");
+    const profileBtn = document.getElementById("wps-profile");
     const langBtn = document.getElementById("wps-lang");
     const pinBtn = document.getElementById("wps-pin");
     const slider = document.getElementById("wps-blur-slider");
@@ -550,6 +559,11 @@
     hideHeaderAvatarBtn?.setAttribute("data-tip", cpsT("panelTooltipHideHeaderAvatar", settings.lang));
     hideTabCountBtn?.setAttribute("data-tip", cpsT("panelTooltipHideTabCount", settings.lang));
     pinBtn?.setAttribute("data-tip", cpsT("panelTooltipHidePanel", settings.lang));
+    if (profileBtn) {
+      const office = settings.activeProfile === "office";
+      profileBtn.textContent = office ? "🏢" : "🏠";
+      profileBtn.setAttribute("data-tip", `${cpsT("profileLabel", settings.lang)}: ${cpsT(office ? "profileOffice" : "profileHome", settings.lang)}`);
+    }
 
     // El candado solo aparece cuando hay Pro + PIN configurado + opción activa.
     lockNowBtn?.classList.toggle("wps-hidden", !pinLockArmed());
@@ -833,58 +847,23 @@
   // difuminada queda inservible: no hay forma de leer nada ni de ver
   // qué chats tienen mensajes pendientes. Al terminar la ventana, se
   // desactiva todo de nuevo.
-  // Si el usuario apaga manualmente en medio de la ventana, no se vuelve
-  // a forzar el encendido hasta el siguiente ciclo (no "pelea" cada 20s).
-  let scheduleWasWithinWindow = false;
+  // Solo se cambia de perfil en el flanco del horario: un cambio manual se
+  // respeta hasta el siguiente.
+  let scheduleLastProfile = null;
 
-  function isWithinSchedule() {
-    if (!settings.scheduleEnabled) return false;
-    const [startH, startM] = (settings.scheduleStart || "09:00").split(":").map(Number);
-    const [endH, endM] = (settings.scheduleEnd || "17:00").split(":").map(Number);
-    if ([startH, startM, endH, endM].some((n) => Number.isNaN(n))) return false;
-
-    const now = new Date();
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-
-    if (startMinutes === endMinutes) return false;
-    if (startMinutes < endMinutes) {
-      return nowMinutes >= startMinutes && nowMinutes < endMinutes;
-    }
-    // Rango que cruza la medianoche (ej. 22:00 a 06:00)
-    return nowMinutes >= startMinutes || nowMinutes < endMinutes;
+  function checkProfileSchedule() {
+    const want = cpsScheduleProfileFor(settings.profileSchedule, new Date());
+    if (want && want !== scheduleLastProfile && want !== settings.activeProfile) switchProfile(want);
+    scheduleLastProfile = want;
   }
 
-  // Opciones que se activan por completo al arrancar la ventana
-  // programada — así el usuario no tiene que haberlas configurado
-  // manualmente de antemano para que el horario dé protección real.
-  const SCHEDULE_FULL_PRIVACY_KEYS = ["hideAvatars", "hideNames", "blurMain", "hideTypedText", "hideChatSubtitle", "hideTabCount", "hoverReveal", "showBadges"];
-
-  function checkSchedule() {
-    if (!settings.scheduleEnabled) {
-      scheduleWasWithinWindow = false;
-      return;
-    }
-    const withinWindow = isWithinSchedule();
-
-    if (withinWindow && !scheduleWasWithinWindow) {
-      // Arranca una ventana nueva: se activa todo.
-      settings.privacyActive = true;
-      SCHEDULE_FULL_PRIVACY_KEYS.forEach((key) => { settings[key] = true; });
-      applyState();
-      saveSettings();
-    } else if (!withinWindow && scheduleWasWithinWindow) {
-      // Termina la ventana: se desactiva.
-      settings.privacyActive = false;
-      applyState();
-      saveSettings();
-    }
-
-    scheduleWasWithinWindow = withinWindow;
+  function switchProfile(id) {
+    settings = cpsProfilesSwitch(settings, id);
+    applyState();
+    saveSettings();
   }
 
-  setInterval(checkSchedule, 20000);
+  setInterval(checkProfileSchedule, 20000);
 
   // ---- Auto-difuminar al perder el foco de la pestaña/ventana ----
   // Se activa apenas cambias de pestaña, minimizas o pasas a otra
@@ -1396,7 +1375,7 @@
   // chats y el overlay tiene que ganarle a eso.
   async function armLockOnLoad() {
     const data = await cpsStorageGet(STORAGE_KEY);
-    if (data[STORAGE_KEY]) settings = { ...defaults, ...data[STORAGE_KEY] };
+    if (data[STORAGE_KEY]) settings = cpsProfilesMigrate({ ...defaults, ...data[STORAGE_KEY] }, new Date());
     await refreshProState();
     if (pinLockArmed()) lockNow();
   }
@@ -1405,7 +1384,7 @@
   function init() {
     loadSettings(() => {
       applyState();
-      checkSchedule();
+      checkProfileSchedule();
       buildPanel();
 
       // La lista de chats puede no existir aún — reintentar hasta que aparezca

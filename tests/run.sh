@@ -7,7 +7,7 @@ EDGE="/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
 # Perfil con ruta corta: con más de 260 caracteres fallan storage e IndexedDB.
 PROFILE="C:/Users/artur/AppData/Local/Temp/cps-t"
 for f in tests/dom/*.html; do
-  out=$("$EDGE" --headless --disable-gpu --allow-file-access-from-files --virtual-time-budget=5000 \
+  out=$("$EDGE" --headless --disable-gpu --allow-file-access-from-files --virtual-time-budget=120000 \
     --user-data-dir="$PROFILE" --dump-dom "file:///$(cygpath -m "$PWD/$f")" 2>/dev/null \
     | grep -E '^(PASS|FAIL|RESULT)')
   echo "== $f"

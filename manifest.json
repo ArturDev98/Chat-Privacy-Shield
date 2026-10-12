@@ -25,6 +25,8 @@
         "i18n.js",
         "pro.js",
         "changelog.js",
+        "profiles.js",
+        "rules.js",
         "sites/whatsapp.js",
         "content.js"
       ],

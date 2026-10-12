@@ -8,7 +8,7 @@ const CPS_TELEGRAM_ORIGINS = ["https://web.telegram.org/*"];
 const CPS_TELEGRAM_SCRIPT = {
   id: "cps-telegram",
   matches: ["https://web.telegram.org/k/*"],
-  js: ["i18n.js", "pro.js", "changelog.js", "sites/telegram.js", "content.js"],
+  js: ["i18n.js", "pro.js", "changelog.js", "profiles.js", "rules.js", "sites/telegram.js", "content.js"],
   css: ["content.css", "sites/telegram.css"],
   runAt: "document_idle",
 };

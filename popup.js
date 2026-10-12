@@ -16,9 +16,6 @@ const defaults = {
   hideTypedText: false,
   autoBlurEnabled: false,
   hideChatSubtitle: false,
-  scheduleEnabled: false,
-  scheduleStart: "09:00",
-  scheduleEnd: "17:00",
   blurOnTabHidden: false,
   hideHeaderAvatar: false,
   hideTabCount: false,
@@ -26,6 +23,7 @@ const defaults = {
   autoLockMinutes: 0,
   lockOnTabHidden: false,
   lang: "en",
+  ...CPS_PROFILE_DEFAULTS,
 };
 
 let settings = { ...defaults };
@@ -35,6 +33,7 @@ let telegramEnabled = false;
 let activeTabUrl = "";
 
 function saveAndSync() {
+  settings = cpsProfilesCapture(settings);
   chrome.storage.local.set({ [STORAGE_KEY]: settings });
 
   // Enviar mensaje al tab activo si es un sitio soportado
@@ -98,10 +97,13 @@ function updateUI() {
   document.getElementById("toggle-hide-typed").checked = settings.hideTypedText;
   document.getElementById("toggle-auto-blur").checked = settings.autoBlurEnabled;
   document.getElementById("toggle-hide-subtitle").checked = settings.hideChatSubtitle;
-  document.getElementById("toggle-schedule").checked = settings.scheduleEnabled;
-  document.getElementById("schedule-start").value = settings.scheduleStart;
-  document.getElementById("schedule-end").value = settings.scheduleEnd;
-  document.getElementById("schedule-times").classList.toggle("disabled", !settings.scheduleEnabled);
+  const schedule = settings.profileSchedule;
+  document.getElementById("toggle-schedule").checked = schedule.enabled;
+  document.getElementById("schedule-start").value = schedule.start;
+  document.getElementById("schedule-end").value = schedule.end;
+  document.getElementById("schedule-times").classList.toggle("disabled", !schedule.enabled);
+  document.getElementById("profile-office").classList.toggle("active", settings.activeProfile === "office");
+  document.getElementById("profile-home").classList.toggle("active", settings.activeProfile === "home");
   document.getElementById("toggle-blur-tab-hidden").checked = settings.blurOnTabHidden;
   document.getElementById("toggle-hide-header-avatar").checked = settings.hideHeaderAvatar;
   document.getElementById("toggle-hide-tab-count").checked = settings.hideTabCount;
@@ -111,12 +113,33 @@ function updateUI() {
 }
 
 // ---- Cargar estado ----
+function readSettings(stored) {
+  return cpsProfilesMigrate({ ...defaults, ...stored }, new Date());
+}
+
 chrome.storage.local.get(STORAGE_KEY, (data) => {
-  if (data[STORAGE_KEY]) settings = { ...defaults, ...data[STORAGE_KEY] };
+  settings = readSettings(data[STORAGE_KEY]);
   updateUI();
   loadProState();
   loadTelegramState();
 });
+
+// El horario puede cambiar de perfil con el popup abierto: sin releer, el
+// siguiente toque devolvería el perfil anterior.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local" || !changes[STORAGE_KEY]?.newValue) return;
+  settings = readSettings(changes[STORAGE_KEY].newValue);
+  updateUI();
+});
+
+function switchProfile(id) {
+  settings = cpsProfilesSwitch(settings, id);
+  updateUI();
+  saveAndSync();
+}
+
+document.getElementById("profile-office").addEventListener("click", () => switchProfile("office"));
+document.getElementById("profile-home").addEventListener("click", () => switchProfile("home"));
 
 // ---- Eventos ----
 document.getElementById("main-toggle").addEventListener("change", (e) => {
@@ -187,18 +210,18 @@ document.getElementById("toggle-hide-tab-count").addEventListener("change", (e) 
 });
 
 document.getElementById("toggle-schedule").addEventListener("change", (e) => {
-  settings.scheduleEnabled = e.target.checked;
-  document.getElementById("schedule-times").classList.toggle("disabled", !settings.scheduleEnabled);
+  settings.profileSchedule = { ...settings.profileSchedule, enabled: e.target.checked };
+  document.getElementById("schedule-times").classList.toggle("disabled", !e.target.checked);
   saveAndSync();
 });
 
 document.getElementById("schedule-start").addEventListener("change", (e) => {
-  settings.scheduleStart = e.target.value || defaults.scheduleStart;
+  settings.profileSchedule = { ...settings.profileSchedule, start: e.target.value || defaults.profileSchedule.start };
   saveAndSync();
 });
 
 document.getElementById("schedule-end").addEventListener("change", (e) => {
-  settings.scheduleEnd = e.target.value || defaults.scheduleEnd;
+  settings.profileSchedule = { ...settings.profileSchedule, end: e.target.value || defaults.profileSchedule.end };
   saveAndSync();
 });
 
@@ -284,7 +307,7 @@ document.getElementById("import-file-input").addEventListener("change", (e) => {
       // Importar no puede ser la puerta trasera para quitar el candado: si
       // está armado, se conserva pase lo que pase en el archivo.
       const lockWasOn = settings.pinLockEnabled;
-      settings = { ...defaults, ...imported };
+      settings = readSettings(imported);
       if (lockWasOn) settings.pinLockEnabled = true;
 
       updateUI();

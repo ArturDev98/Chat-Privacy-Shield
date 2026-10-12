@@ -45,7 +45,7 @@
       },
       onChanged: { addListener(fn) { changeListeners.push(fn); } },
     },
-    tabs: { query(_q, cb) { cb && cb([]); }, sendMessage() {} },
+    tabs: { query(_q, cb) { cb && cb([]); return Promise.resolve([]); }, sendMessage() {} },
     permissions: { contains(_p, cb) { cb && cb(false); return Promise.resolve(false); } },
   };
 })();

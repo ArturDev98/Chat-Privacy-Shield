@@ -12,4 +12,10 @@
   };
   window.settle = (ms = 50) => new Promise((r) => setTimeout(r, ms));
   window.addEventListener("error", (e) => { failed++; lines.push("FAIL uncaught: " + e.message); });
+  // Una prueba async que lanza no llega a done(): se cierra aquí con el error.
+  window.addEventListener("unhandledrejection", (e) => {
+    failed++;
+    lines.push("FAIL rejected: " + (e.reason && e.reason.message || e.reason));
+    window.done();
+  });
 })();

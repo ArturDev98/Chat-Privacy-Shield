@@ -290,6 +290,36 @@
       color: rgba(255,94,91,0.9);
     }
 
+    .profile-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .profile-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+    }
+    .profile-switch {
+      display: flex;
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 2px;
+    }
+    .profile-switch button {
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .profile-switch button.active {
+      background: #00a884;
+      color: #fff;
+    }
     .schedule-section {
       padding: 10px 18px;
       border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -646,6 +676,14 @@
     </label>
   </div>
 
+  <div class="profile-bar">
+    <span class="profile-label" data-i18n="profileLabel">Profile</span>
+    <div class="profile-switch">
+      <button type="button" id="profile-office" data-i18n="profileOffice">Office</button>
+      <button type="button" id="profile-home" data-i18n="profileHome">Home</button>
+    </div>
+  </div>
+
   <div class="tg-banner" id="tg-banner" hidden>
     <p id="tg-banner-text"></p>
     <button type="button" id="tg-banner-btn" class="mini-btn" data-i18n="telegramBannerButton">Turn on for Telegram Web</button>
@@ -858,7 +896,7 @@
 
   <div class="schedule-section">
     <div class="schedule-header">
-      <div class="schedule-title" data-i18n="scheduleTitle">Scheduled auto-blur</div>
+      <div class="schedule-title" data-i18n="profileScheduleTitle">Use Office on a schedule</div>
       <label class="toggle">
         <input type="checkbox" id="toggle-schedule">
         <div class="toggle-track"></div>
@@ -967,6 +1005,8 @@
   <script src="i18n.js"></script>
   <script src="pro.js"></script>
   <script src="sites.js"></script>
+  <script src="profiles.js"></script>
+  <script src="rules.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
