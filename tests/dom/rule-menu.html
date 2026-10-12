@@ -13,7 +13,8 @@
 <script>
 mountWhatsApp(["Trabajo", "Pedro"]);
 let pro = false;
-const core = { getSettings: () => ({ lang: "en" }), isPro: () => pro, pinConfigured: () => true, bindHoverContainer() {} };
+const settings = { lang: "en", privacyActive: true };
+const core = { getSettings: () => settings, isPro: () => pro, pinConfigured: () => true, bindHoverContainer() {} };
 const rules = cpsCreateRules(core, cpsCreateSite(core));
 const hover = (el) => el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 const btn = () => document.getElementById("cps-rule-btn");
@@ -59,6 +60,13 @@ const visible = (el) => !!el && !el.hidden;
   remove.click();
   await settle(100);
   check("quitar regla", !__cpsStore.cps_chat_rules["whatsapp:Pedro"]);
+
+  // Con la privacidad apagada solo se ofrece sobre chats que ya tienen regla.
+  settings.privacyActive = false;
+  hover(rowOf("Pedro").querySelector("span[title]"));
+  check("sin botón con privacidad apagada", !visible(btn()));
+  hover(rowOf("Trabajo").querySelector("span[title]"));
+  check("botón en chat con regla aunque la privacidad esté apagada", visible(btn()));
   done();
 })();
 </script>

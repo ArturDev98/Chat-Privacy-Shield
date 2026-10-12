@@ -194,7 +194,9 @@ function cpsCreateRules(core, site) {
     const cell = e.target.closest?.(site.ruleRowSelector);
     const name = cell ? site.ruleRowKey(cell) : null;
     const btn = ruleButton();
-    if (!name) {
+    // Con la privacidad apagada solo se ofrece para quitar o cambiar una regla existente.
+    const offered = name && (core.getSettings().privacyActive || rules[cpsRuleKey(site.id, name)]);
+    if (!offered) {
       btn.hidden = true;
       return;
     }
