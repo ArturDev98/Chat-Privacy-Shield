@@ -956,6 +956,7 @@
   }
 
   function applyTabCounter() {
+    document.body.classList.toggle("wps-force-tab-count", rules.hasHidden() && !rules.isRevealed());
     applyTabTitle();
     applyTabIcon();
   }

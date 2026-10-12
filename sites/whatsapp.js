@@ -524,8 +524,9 @@ function cpsCreateSite(core) {
     for (const sel of OPEN_CHAT_TITLE_SELECTORS) {
       const el = document.querySelector(sel);
       if (!el) continue;
-      const name = el.getAttribute("title") || textWithEmoji(el).trim();
-      if (name) return name;
+      // Sin trim: la regla guarda el title tal cual, con espacios incluidos.
+      const name = el.getAttribute("title") || textWithEmoji(el);
+      if (name.trim()) return name;
     }
     return null;
   }

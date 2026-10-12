@@ -1,5 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
+<link rel="stylesheet" href="../../content.css">
 <title>(3) WhatsApp</title>
 <body>
 <pre id="results"></pre>
@@ -12,6 +13,7 @@
   // Pro real exige una licencia firmada: se simula solo la consulta.
   cpsProGet = async () => ({ active: true, serial: 1 });
   mountWhatsApp(["Trabajo", "Familia"]);
+  document.body.insertAdjacentHTML("beforeend", '<div data-testid="navbar-primary-section"><span role="status" id="nav-count">3</span></div>');
   __cpsStore.wps_settings = { lang: "en", privacyActive: false, panelVisible: true };
   __cpsStore.cps_chat_rules = { "whatsapp:Familia": { mode: "hide", lastSeen: 0 } };
 </script>
@@ -30,6 +32,7 @@ const showBtn = () => document.querySelector("#cps-hidden-cover button");
   await settle(500);
   check("escondido al cargar", rowOf("Familia").classList.contains("cps-rule-hide"));
   check("contador forzado", !/^\(\d+\)/.test(document.title));
+  check("contador del menú forzado", getComputedStyle(document.getElementById("nav-count")).visibility === "hidden");
   check("botón de panel visible", !document.getElementById("wps-hidden-toggle").classList.contains("wps-hidden"));
 
   openChat("Familia");
