@@ -38,6 +38,14 @@ const visibleClone = () => [...document.querySelectorAll(".wps-badge-clone")].so
   check("lista clicable", getComputedStyle(document.getElementById("pane-side")).pointerEvents !== "none");
   check("sin copias de contador en lista legible", !visibleClone());
 
+  const avatar = () => row().querySelector(".fixture-avatar");
+  check("foto a la vista sin ocultar fotos", !blurred(avatar()));
+  document.getElementById("wps-avatars").click();
+  await settle(100);
+  check("foto de letra o con anillo de estado difuminada", blurred(avatar()));
+  check("la columna del nombre no se difumina entera", !blurred(row().querySelector(".fixture-content")));
+  document.getElementById("wps-avatars").click();
+
   document.getElementById("wps-names").click();
   await settle(100);
   check("ocultar nombres difumina el nombre en la lista", blurred(nameSpan()));

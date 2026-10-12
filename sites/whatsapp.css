@@ -294,14 +294,15 @@ body.wps-active.wps-hide-preview.wps-hide-names [data-testid="cell-frame-title"]
   transition: filter 0.25s ease;
 }
 
-/* Los emoji del nombre y del mensaje también son <img>: solo se difumina la foto. */
-body.wps-active.wps-hide-preview.wps-hide-avatars [data-testid^="list-item-"] img:not(:is([data-testid="cell-frame-title"], [data-testid="cell-frame-secondary"]) img) {
+/* Toda la columna de la foto: con estado (SVG), sin foto (letra) o temporal no hay un <img> simple. */
+body.wps-active.wps-hide-preview.wps-hide-avatars [data-testid="cell-frame-container"] > :first-child:not(:has([data-testid="cell-frame-title"])) {
   filter: blur(12px);
   transition: filter 0.25s ease;
 }
 
 body.wps-active.wps-hover-reveal .wps-revealed [data-testid="cell-frame-secondary"] span,
 body.wps-active.wps-hover-reveal .wps-revealed [data-testid="cell-frame-title"] span,
+body.wps-active.wps-hover-reveal .wps-revealed [data-testid="cell-frame-container"] > :first-child,
 body.wps-active.wps-hover-reveal .wps-revealed img {
   filter: none !important;
 }

@@ -2,8 +2,11 @@
 window.waRow = (i, name) => `
   <div data-testid="list-item-${i}" role="row"><div tabindex="-1" aria-selected="false">
     <div data-testid="cell-frame-container">
+      <div class="fixture-avatar"><svg width="40" height="40"><circle cx="20" cy="20" r="19" stroke="green" fill="none"/></svg><span>${(name || "?")[0]}</span></div>
+      <div class="fixture-content">
       ${name == null ? "" : `<div data-testid="cell-frame-title"><span dir="auto" title="${name.replace(/"/g, "&quot;")}">${name}</span></div>`}
       <div data-testid="cell-frame-secondary"><span>último mensaje</span></div>
+      </div>
     </div>
   </div></div>`;
 window.mountWhatsApp = (names) => {
