@@ -82,6 +82,7 @@ function cpsCreateRules(core, site) {
   let rules = {};
   let revealed = false;
   let frame = 0;
+  let appliedState = null;
   const lang = () => core.getSettings().lang;
 
   function modeOf(name) {
@@ -105,7 +106,12 @@ function cpsCreateRules(core, site) {
     });
     applyOpenChat();
     if (touched) cpsStorageSet({ [CPS_RULES_KEY]: rules });
-    core.onApplied?.();
+    // Panel y contador de la pestaña solo dependen de esto: no se refrescan en cada mutación.
+    const state = `${cpsRulesHiddenCount(rules) > 0 && core.isPro()}|${revealed}`;
+    if (state !== appliedState) {
+      appliedState = state;
+      core.onApplied?.();
+    }
   }
 
   function applyOpenChat() {
@@ -155,8 +161,9 @@ function cpsCreateRules(core, site) {
     document.addEventListener("mouseover", onHover, { passive: true });
     document.addEventListener("click", closeMenu);
     // title cubre las filas que la lista virtualizada recicla para otro chat.
+    // En el mismo microtask de la mutación: con un timer, el chat escondido llegaría a pintarse.
     new MutationObserver((records) => {
-      if (records.some(cpsIsSiteMutation)) schedule();
+      if (records.some(cpsIsSiteMutation)) apply();
     }).observe(document.body, {
       childList: true, subtree: true, attributes: true, attributeFilter: ["title"],
     });

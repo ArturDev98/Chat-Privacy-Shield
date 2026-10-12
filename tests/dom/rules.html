@@ -39,7 +39,15 @@ const rules = cpsCreateRules(core, site);
   famRow.querySelector("span[title]").setAttribute("title", "Familia");
   await settle(100);
 
+  // Sin esperar timers: lo escondido tiene que aplicarse antes del siguiente pintado.
+  famRow.querySelector("span[title]").setAttribute("title", "Pedro");
+  await settle(50);
+  famRow.querySelector("span[title]").setAttribute("title", "Familia");
+  await Promise.resolve();
+  check("fila reciclada se esconde sin esperar timers", famRow.classList.contains("cps-rule-hide"));
   openChat("Familia");
+  await Promise.resolve();
+  check("tapa sin esperar timers", !!document.getElementById("cps-hidden-cover"));
   await settle(100);
   check("conversación escondida", !!document.getElementById("cps-hidden-cover"));
   rules.reveal();
