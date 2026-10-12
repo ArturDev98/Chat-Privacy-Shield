@@ -553,3 +553,42 @@ body.wps-locked #wps-restore-hint {
 #wps-lock-reset-actions #wps-lock-reset-ok:hover {
   background: rgba(37, 211, 102, 0.25);
 }
+
+/* ---- Reglas por chat (rules.js) ---- */
+/* Aplican aunque la privacidad esté apagada: por eso se llaman "siempre". */
+.cps-rule-blur {
+  filter: blur(var(--wps-blur, 8px));
+  transition: filter 0.25s ease;
+}
+
+body.wps-hover-reveal .cps-rule-blur.wps-revealed {
+  filter: none;
+}
+
+.cps-rule-hide {
+  display: none !important;
+}
+
+#cps-hidden-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: #111b21;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+}
+
+#cps-hidden-cover button {
+  border: 0;
+  border-radius: 18px;
+  padding: 8px 18px;
+  background: #00a884;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}

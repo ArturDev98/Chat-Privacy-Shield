@@ -56,5 +56,11 @@ function cpsCreateSite(core) {
     // Total del menú hamburguesa y de la flecha "atrás"; las carpetas se dejan,
     // igual que los filtros de WhatsApp.
     navCountSelector: ".sidebar-tools-button-notifications, .back-unread-badge",
+
+    // Sin reglas por chat en 2.1.0; WebK tendría data-peer-id como clave estable.
+    ruleRowSelector: null,
+    ruleRowKey: () => null,
+    ruleRowContainer: (cell) => cell,
+    openChatKey: () => null,
   };
 }

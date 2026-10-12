@@ -497,6 +497,39 @@ function cpsCreateSite(core) {
     }
   }
 
+  // ---- Reglas por chat: el nombre es la única clave visible en el DOM ----
+
+  // WhatsApp pinta los emoji como <img alt>: textContent los perdería.
+  function textWithEmoji(el) {
+    let out = "";
+    el.childNodes.forEach((n) => {
+      if (n.nodeType === 3) out += n.nodeValue;
+      else if (n.nodeName === "IMG") out += n.getAttribute("alt") || "";
+      else if (n.nodeType === 1) out += textWithEmoji(n);
+    });
+    return out;
+  }
+
+  function ruleRowKey(cell) {
+    return cell.querySelector('[data-testid="cell-frame-title"] span[title]')?.getAttribute("title") || null;
+  }
+
+  const OPEN_CHAT_TITLE_SELECTORS = [
+    '#main header [data-testid="conversation-info-header-chat-title"]',
+    '#main header [data-testid="conversation-info-header"] span[title]',
+    '#main header span[dir="auto"]',
+  ];
+
+  function openChatKey() {
+    for (const sel of OPEN_CHAT_TITLE_SELECTORS) {
+      const el = document.querySelector(sel);
+      if (!el) continue;
+      const name = el.getAttribute("title") || textWithEmoji(el).trim();
+      if (name) return name;
+    }
+    return null;
+  }
+
   return {
     id: "whatsapp",
 
@@ -528,5 +561,10 @@ function cpsCreateSite(core) {
     // Número sobre el ícono de Chats (confirmado via consola); los puntos verdes
     // de Estados y Canales también son [role="status"], pero sin número.
     navCountSelector: '[data-testid="navbar-primary-section"] [role="status"]',
+
+    ruleRowSelector: '[data-testid="cell-frame-container"]',
+    ruleRowKey,
+    ruleRowContainer: (cell) => cell.closest(HOVER_ITEM_SELECTOR) || cell,
+    openChatKey,
   };
 }

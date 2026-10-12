@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="wa-fixture.js"></script>
+<script src="../../i18n.js"></script>
+<script src="../../pro.js"></script>
+<script src="../../rules.js"></script>
+<script src="../../sites/whatsapp.js"></script>
+<script>
+const ODD = 'Ana "La Jefa" 💝 ';
+mountWhatsApp(["Trabajo", "Familia", ODD]);
+__cpsStore.cps_chat_rules = {
+  "whatsapp:Trabajo": { mode: "blur", lastSeen: 0 },
+  "whatsapp:Familia": { mode: "hide", lastSeen: 0 },
+  ["whatsapp:" + ODD]: { mode: "hide", lastSeen: 0 },
+};
+let pro = true;
+const settings = { privacyActive: false, lang: "en" };
+const core = { getSettings: () => settings, isPro: () => pro, pinConfigured: () => true, bindHoverContainer() {} };
+const site = cpsCreateSite(core);
+const rules = cpsCreateRules(core, site);
+(async () => {
+  rules.start();
+  await settle(200);
+  check("blur sin privacidad", rowOf("Trabajo").classList.contains("cps-rule-blur"));
+  check("hide", rowOf("Familia").classList.contains("cps-rule-hide"));
+  check("archivados sin clase", !document.querySelector("#pane-side > button .cps-rule-blur, #pane-side > button.cps-rule-hide, #pane-side > button .cps-rule-hide"));
+  check("nombre raro", rowOf(ODD).classList.contains("cps-rule-hide"));
+  check("hasHidden", rules.hasHidden() === true);
+  check("lastSeen se guarda", __cpsStore.cps_chat_rules["whatsapp:Trabajo"].lastSeen > 0);
+
+  const famRow = rowOf("Familia");
+  famRow.querySelector("span[title]").setAttribute("title", "Pedro");
+  await settle(100);
+  check("fila reciclada", !famRow.classList.contains("cps-rule-hide"));
+  famRow.querySelector("span[title]").setAttribute("title", "Familia");
+  await settle(100);
+
+  openChat("Familia");
+  await settle(100);
+  check("conversación escondida", !!document.getElementById("cps-hidden-cover"));
+  rules.reveal();
+  await settle(100);
+  check("revelado quita la tapa", !document.getElementById("cps-hidden-cover") && !rowOf("Familia").classList.contains("cps-rule-hide"));
+  rules.conceal();
+  await settle(100);
+  check("conceal vuelve a esconder", !!document.getElementById("cps-hidden-cover") && rowOf("Familia").classList.contains("cps-rule-hide"));
+
+  openChat("Trabajo");
+  await settle(100);
+  check("conversación con blur", document.body.classList.contains("wps-rule-main-blur") && !document.getElementById("cps-hidden-cover"));
+
+  pro = false;
+  rules.apply();
+  check("hide sin Pro", rowOf("Familia").classList.contains("cps-rule-blur") && !rowOf("Familia").classList.contains("cps-rule-hide"));
+
+  let threw = false;
+  try { const inert = cpsCreateRules(core, { ruleRowSelector: null }); inert.start(); inert.apply(); inert.hasHidden(); } catch { threw = true; }
+  check("telegram inerte", !threw);
+  done();
+})();
+</script>
+</body>

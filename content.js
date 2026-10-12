@@ -58,6 +58,12 @@
     bindHoverContainer,
   });
 
+  const rules = cpsCreateRules({
+    getSettings: () => settings,
+    isPro: () => proActive,
+    pinConfigured: () => pinConfigured,
+  }, site);
+
   // ---- Cargar settings desde chrome.storage ----
   function loadSettings(cb) {
     try {
@@ -1010,8 +1016,13 @@
   const MESSAGE_ROW_SELECTOR = site.messageRowSelector;
   const MESSAGE_SELECTOR = site.messageSelector;
 
+  // La regla "difuminar siempre" del chat abierto difumina aunque la privacidad esté apagada.
+  function messageBlurOn() {
+    return (settings.privacyActive && settings.blurMain) || document.body.classList.contains("wps-rule-main-blur");
+  }
+
   document.addEventListener("mouseover", (e) => {
-    if (!settings.privacyActive || !settings.blurMain) return;
+    if (!messageBlurOn()) return;
     const row = e.target.closest?.(MESSAGE_ROW_SELECTOR);
     if (!row) return;
     const msg = row.querySelector(MESSAGE_SELECTOR);
@@ -1019,7 +1030,7 @@
   });
 
   document.addEventListener("mouseout", (e) => {
-    if (!settings.privacyActive || !settings.blurMain) return;
+    if (!messageBlurOn()) return;
     const row = e.target.closest?.(MESSAGE_ROW_SELECTOR);
     if (!row) return;
     const related = e.relatedTarget;
@@ -1072,6 +1083,7 @@
     lockPinLength = await cpsPinLength();
     // Si se pierde el Pro o se borra el PIN, no puede quedar nadie encerrado.
     if (isLocked && !(proActive && pinConfigured)) unlockNow();
+    rules.apply();
     updatePanelUI();
     restartAutoLock();
   }
@@ -1398,6 +1410,7 @@
       tryBindPane();
 
       site.start();
+      rules.start();
 
       if (!settings.panelVisible) {
         panel.classList.add("wps-panel-hidden");

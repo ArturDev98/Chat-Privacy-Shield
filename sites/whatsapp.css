@@ -258,3 +258,15 @@ body.wps-locked #app {
 body.wps-locked #cps-status-preview {
   display: none !important;
 }
+
+/* Regla "difuminar siempre" del chat abierto: mismas burbujas que blur-main. */
+body.wps-rule-main-blur [data-testid="conversation-panel-messages"] [data-testid="msg-container"] {
+  filter: blur(var(--wps-blur));
+  opacity: var(--wps-opacity);
+  transition: filter var(--wps-transition), opacity var(--wps-transition);
+}
+
+body.wps-rule-main-blur [data-testid="conversation-panel-messages"] [data-testid="msg-container"].wps-msg-revealed {
+  filter: blur(0px) !important;
+  opacity: 1 !important;
+}
