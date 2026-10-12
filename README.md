@@ -30,13 +30,17 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 🔔 **Show unread badges** | Keep unread message counters visible even while the chat list is blurred |
 | 💬 **Blur active conversation** | Blur the open chat's messages (compose box stays usable) |
 | ⌨️ **Hide typed text on blur** | Blur what you're typing when the chat input loses focus |
-| 📥 **Donwload Status** | Donwload statuses (Images or videos) |
+| 📥 **Download Status** | Download statuses (images or videos) |
 | 👁️ **Auto-Blur** | Auto-blur due to inactivity |
+| 💬 **Hide message previews** | Blur only the last-message line under each chat, keeping names visible |
+| 🛡 **Always blur a chat** | Hover a chat and use 🛡 to keep that chat blurred, even with privacy off |
+| 🏢 **Office / Home profiles** | Two sets of settings, switched by hand or on a schedule (replaces scheduled auto-blur) |
 | 🥷🏽 **Hidden online/last seen** | Hide online status, last seen, or typing status |
 | #️⃣ **Hide unread counter** | Hide the "(3)" in the tab title, the number on the tab icon (pinned tabs too) and the one on the Chats icon in the left menu while privacy is on |
 | ✈️ **Telegram Web** | The same protection on `web.telegram.org/k`, opt-in from the popup — see [Telegram Web](#telegram-web) |
 | 🔒 **PIN Lock** ⭐ | Full lock screen — WhatsApp Web and Telegram Web ask for your PIN every time they open |
 | ⏱ **Auto-lock** ⭐ | Lock with PIN after 1–30 min of inactivity, or as soon as you leave the tab |
+| 🙈 **Hidden chats** ⭐ | Hide chats from every list until you enter your PIN |
 
 ⭐ = Pro feature. See [Pro](#pro).
 
@@ -85,7 +89,7 @@ Until published to the Chrome Web Store:
 
 ## Pro
 
-Everything listed above is free except **PIN Lock** and its **Auto-lock** options.
+Everything listed above is free except **PIN Lock**, its **Auto-lock** options and **Hidden chats**.
 
 **What it does**
 
@@ -118,6 +122,15 @@ The PIN is never stored in plain text and never leaves your machine. It is saved
 
 After a few wrong attempts the lock screen offers **Forgot your PIN?** — paste your license there and the PIN is cleared, so you can set a new one. Only the license that activated this installation works, so someone sitting at your desk can't use it to get in. Keep your purchase email.
 
+**Hidden chats**
+
+Hover a chat, click 🛡 and choose **Hide**. The chat disappears from the chat list, archived chats, search, statuses, calls and the forward picker. To see hidden chats, click 🙈 in the floating panel and enter your PIN. They stay visible until the next lock or page reload. While any chat is hidden, the unread counter in the tab title and the left menu stays hidden too, because it would count that chat's messages. If the open conversation is a hidden chat, it's covered until you enter your PIN.
+
+Limits:
+- **Rules follow the chat's name.** WhatsApp Web doesn't expose a chat ID to extensions without running code inside the page. If you rename a contact, or someone renames a group, the rule stops matching and the chat becomes visible again. The popup shows when each rule last matched a chat.
+- **Notifications aren't affected.** Mute the chat in WhatsApp so that its notifications don't show.
+- **Without Pro**, hidden chats are blurred instead of being shown.
+
 **What it is not**
 
 This is a deterrent against someone walking up to your unlocked computer. It is not encryption: it does not protect WhatsApp's own local data, and anyone who can disable extensions or read your browser profile can get past it. After 4 wrong attempts the keypad locks for 30s, then 60s, then 5 minutes — and that counter survives a page reload.
@@ -142,7 +155,6 @@ This extension:
 - [ ] Instagram DMs support
 - [ ] Google Chat support  
 - [x] Telegram Web support (K version)
-- [ ] Per-platform profiles
 
 ---
 
