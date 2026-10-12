@@ -33,7 +33,7 @@ Chat Privacy Shield blurs your chat list, names, profile photos, and shared imag
 | 📥 **Download Status** | Download statuses (images or videos) |
 | 👁️ **Auto-Blur** | Auto-blur due to inactivity |
 | 💬 **Hide message previews** | Blur only the last-message line under each chat, keeping names visible |
-| 🛡 **Always blur a chat** | Hover a chat and use 🛡 to keep that chat blurred, even with privacy off |
+| 🛡 **Always blur a chat** | With privacy on, hover a chat and use 🛡 — that chat stays blurred even after you turn privacy off |
 | 🏢 **Office / Home profiles** | Two sets of settings, switched by hand or on a schedule (replaces scheduled auto-blur) |
 | 🥷🏽 **Hidden online/last seen** | Hide online status, last seen, or typing status |
 | #️⃣ **Hide unread counter** | Hide the "(3)" in the tab title, the number on the tab icon (pinned tabs too) and the one on the Chats icon in the left menu while privacy is on |
