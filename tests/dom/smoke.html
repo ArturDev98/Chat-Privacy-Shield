@@ -1,0 +1,13 @@
+<!doctype html>
+<meta charset="utf-8">
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script>
+(async () => {
+  chrome.storage.local.set({ a: 1 });
+  const got = await new Promise((r) => chrome.storage.local.get("a", r));
+  check("stub storage", got.a === 1);
+  done();
+})();
+</script>
