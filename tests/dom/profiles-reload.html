@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<pre id="results"></pre>
+<div id="app"><div id="pane-side"></div></div>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="fake-clock.js"></script>
+<script>
+  // Recarga a las 20:00 tras elegir Oficina a mano fuera del horario.
+  setFakeTime(2026, 9, 12, 20, 0, 0);
+  const office = { privacyActive: true, hideNames: true };
+  const home = { privacyActive: false, hideNames: false };
+  __cpsStore.wps_settings = { lang: "en", panelVisible: true, ...office, activeProfile: "office",
+    profiles: { office, home }, profileSchedule: { enabled: true, start: "09:00", end: "17:00" },
+    profileScheduleLast: "home" };
+</script>
+<script src="../../i18n.js"></script>
+<script src="../../pro.js"></script>
+<script src="../../profiles.js"></script>
+<script src="../../rules.js"></script>
+<script src="../../sites/whatsapp.js"></script>
+<script src="../../content.js"></script>
+<script>
+(async () => {
+  await settle(300);
+  check("elección manual sobrevive a la recarga", __cpsStore.wps_settings.activeProfile === "office"
+    && document.body.classList.contains("wps-active"));
+  setFakeTime(2026, 9, 13, 9, 0, 10);
+  await settle(21000);
+  check("el siguiente flanco sí cambia", __cpsStore.wps_settings.activeProfile === "office"
+    && __cpsStore.wps_settings.profileScheduleLast === "office");
+  done();
+})();
+</script>
+</body>

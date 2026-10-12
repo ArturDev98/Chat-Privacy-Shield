@@ -864,23 +864,14 @@
     document.addEventListener(evt, scheduleAutoBlur, { passive: true });
   });
 
-  // ---- Auto-difuminar por horario programado ----
-  // Al entrar a la ventana configurada (ej. 9:00-17:00), se activa la
-  // privacidad junto con todas las opciones principales de ocultar
-  // (fotos, nombres, chat activo, texto escrito, en línea/última vez) y
-  // las que hacen que ese difuminado siga siendo usable (revelar al
-  // pasar el cursor, contador de no leídos) — sin esto último, la lista
-  // difuminada queda inservible: no hay forma de leer nada ni de ver
-  // qué chats tienen mensajes pendientes. Al terminar la ventana, se
-  // desactiva todo de nuevo.
-  // Solo se cambia de perfil en el flanco del horario: un cambio manual se
-  // respeta hasta el siguiente.
-  let scheduleLastProfile = null;
-
+  // ---- Perfiles por horario ----
+  // Solo se cambia en el flanco, guardado en settings: una elección manual sobrevive a recargas.
   function checkProfileSchedule() {
     const want = cpsScheduleProfileFor(settings.profileSchedule, new Date());
-    if (want && want !== scheduleLastProfile && want !== settings.activeProfile) switchProfile(want);
-    scheduleLastProfile = want;
+    if (!want || want === settings.profileScheduleLast) return;
+    settings.profileScheduleLast = want;
+    if (want !== settings.activeProfile) switchProfile(want);
+    else saveSettings();
   }
 
   function switchProfile(id) {

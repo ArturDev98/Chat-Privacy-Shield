@@ -87,3 +87,24 @@ test("profileFor", () => {
   assert.strictEqual(P.cpsScheduleProfileFor({ enabled: true, start: "09:00", end: "17:00" }, at(10)), "office");
   assert.strictEqual(P.cpsScheduleProfileFor({ enabled: true, start: "09:00", end: "17:00" }, at(17)), "home");
 });
+
+test("perfiles importados solo aceptan claves visuales", () => {
+  const crafted = { ...P.cpsProfilesMigrate(legacy(), at(10)), pinLockEnabled: true };
+  crafted.profiles.home = { ...crafted.profiles.home, pinLockEnabled: false, autoLockMinutes: 0, lang: "zh" };
+  const migrated = P.cpsProfilesMigrate(crafted, at(10));
+  assert.strictEqual("pinLockEnabled" in migrated.profiles.home, false);
+  const switched = P.cpsProfilesSwitch(crafted, "home");
+  assert.strictEqual(switched.pinLockEnabled, true);
+  assert.strictEqual(switched.lang, "es");
+});
+
+test("migrate conserva la privacidad encendida a mano fuera del horario", () => {
+  const out = P.cpsProfilesMigrate(legacy({ privacyActive: true }), at(20));
+  assert.strictEqual(out.activeProfile, "home");
+  assert.strictEqual(out.privacyActive, true);
+});
+
+test("migrate anota el último perfil puesto por el horario", () => {
+  assert.strictEqual(P.cpsProfilesMigrate(legacy(), at(20)).profileScheduleLast, "home");
+  assert.strictEqual(P.cpsProfilesMigrate(legacy({ scheduleEnabled: false }), at(20)).profileScheduleLast, null);
+});

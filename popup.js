@@ -219,6 +219,7 @@ document.getElementById("toggle-hide-tab-count").addEventListener("change", (e) 
 
 document.getElementById("toggle-schedule").addEventListener("change", (e) => {
   settings.profileSchedule = { ...settings.profileSchedule, enabled: e.target.checked };
+  settings.profileScheduleLast = null;
   document.getElementById("schedule-times").classList.toggle("disabled", !e.target.checked);
   saveAndSync();
 });

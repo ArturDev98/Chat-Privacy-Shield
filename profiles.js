@@ -19,6 +19,7 @@ const CPS_PROFILE_DEFAULTS = {
   activeProfile: "office",
   profiles: null,
   profileSchedule: { enabled: false, start: "09:00", end: "17:00" },
+  profileScheduleLast: null,
 };
 
 function cpsVisualSnapshot(settings) {
@@ -61,8 +62,11 @@ function cpsProfilesMigrate(settings, now) {
   delete out.scheduleEnd;
 
   if (out.profiles && out.profiles.office && out.profiles.home) {
+    // Un JSON importado podría colar PIN o candado dentro de un perfil.
+    out.profiles = { office: cpsVisualSnapshot(out.profiles.office), home: cpsVisualSnapshot(out.profiles.home) };
     if (!CPS_PROFILE_IDS.includes(out.activeProfile)) out.activeProfile = "office";
     if (!out.profileSchedule) out.profileSchedule = { ...CPS_PROFILE_DEFAULTS.profileSchedule };
+    if (out.profileScheduleLast === undefined) out.profileScheduleLast = null;
     return out;
   }
 
@@ -73,9 +77,13 @@ function cpsProfilesMigrate(settings, now) {
     CPS_SCHEDULE_FULL_PRIVACY_KEYS.forEach((key) => { office[key] = true; });
     out.profiles = { office, home: { ...current, privacyActive: false } };
     out.activeProfile = cpsScheduleProfileFor(legacy, now);
+    // Fuera del horario, 2.0 respetaba la privacidad encendida a mano: actualizar no la apaga.
+    if (out.activeProfile === "home" && current.privacyActive) out.profiles.home.privacyActive = true;
+    out.profileScheduleLast = out.activeProfile;
   } else {
     out.profiles = { office: { ...current }, home: { ...current } };
     out.activeProfile = "office";
+    out.profileScheduleLast = null;
   }
   return { ...out, ...out.profiles[out.activeProfile] };
 }
@@ -91,7 +99,7 @@ function cpsProfilesCapture(settings) {
 function cpsProfilesSwitch(settings, id) {
   if (!CPS_PROFILE_IDS.includes(id) || !settings.profiles) return settings;
   const captured = cpsProfilesCapture(settings);
-  return { ...captured, ...captured.profiles[id], activeProfile: id };
+  return { ...captured, ...cpsVisualSnapshot(captured.profiles[id]), activeProfile: id };
 }
 
 if (typeof module !== "undefined") {
