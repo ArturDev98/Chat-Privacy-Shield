@@ -136,10 +136,104 @@ function cpsCreateRules(core, site) {
       rules = changes[CPS_RULES_KEY].newValue || {};
       schedule();
     });
+    document.addEventListener("mouseover", onHover, { passive: true });
+    document.addEventListener("click", closeMenu);
     // title cubre las filas que la lista virtualizada recicla para otro chat.
     new MutationObserver(schedule).observe(document.body, {
       childList: true, subtree: true, attributes: true, attributeFilter: ["title"],
     });
+  }
+
+  // ---- Botón 🛡 y menú: un único elemento flotante, nada dentro de las filas ----
+  let hoveredName = null;
+  let tipTimer = null;
+
+  function ruleButton() {
+    let btn = document.getElementById("cps-rule-btn");
+    if (btn) return btn;
+    btn = document.createElement("button");
+    btn.id = "cps-rule-btn";
+    btn.type = "button";
+    btn.textContent = "🛡";
+    btn.hidden = true;
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openMenu(btn);
+    });
+    document.body.appendChild(btn);
+    return btn;
+  }
+
+  function onHover(e) {
+    if (e.target.closest?.("#cps-rule-btn, #cps-rule-menu")) return;
+    const cell = e.target.closest?.(site.ruleRowSelector);
+    const name = cell ? site.ruleRowKey(cell) : null;
+    const btn = ruleButton();
+    if (!name) {
+      btn.hidden = true;
+      return;
+    }
+    hoveredName = name;
+    const rect = cell.getBoundingClientRect();
+    btn.style.top = `${rect.top + rect.height / 2 - 12}px`;
+    btn.style.left = `${rect.right - 30}px`;
+    btn.hidden = false;
+  }
+
+  function closeMenu() {
+    document.getElementById("cps-rule-menu")?.remove();
+  }
+
+  function openMenu(anchor) {
+    closeMenu();
+    const name = hoveredName;
+    const hasRule = !!rules[cpsRuleKey(site.id, name)];
+    const canHide = core.isPro() && core.pinConfigured();
+    const menu = document.createElement("div");
+    menu.id = "cps-rule-menu";
+    const item = (mode, label, disabled, hidden) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.rule = mode;
+      b.textContent = label;
+      b.disabled = disabled;
+      b.hidden = hidden;
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeMenu();
+        setRule(name, mode === "remove" ? null : mode);
+        if (mode === "hide") showTip(cpsT("ruleMuteTip", lang()));
+      });
+      return b;
+    };
+    menu.append(
+      item("blur", cpsT("ruleBlur", lang()), false, false),
+      item("hide", cpsT("ruleHide", lang()), !canHide, false),
+      item("remove", cpsT("ruleRemove", lang()), false, !hasRule),
+    );
+    if (!canHide) {
+      const note = document.createElement("div");
+      note.className = "cps-rule-note";
+      note.textContent = cpsT("ruleHideNeedsPro", lang());
+      menu.appendChild(note);
+    }
+    const rect = anchor.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + 4}px`;
+    menu.style.left = `${Math.max(8, rect.right - 200)}px`;
+    document.body.appendChild(menu);
+  }
+
+  function showTip(text) {
+    let tip = document.getElementById("cps-rule-tip");
+    if (!tip) {
+      tip = document.createElement("div");
+      tip.id = "cps-rule-tip";
+      document.body.appendChild(tip);
+    }
+    tip.textContent = text;
+    tip.hidden = false;
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(() => { tip.hidden = true; }, 4000);
   }
 
   function setRule(name, mode) {

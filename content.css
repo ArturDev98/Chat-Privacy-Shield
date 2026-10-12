@@ -592,3 +592,69 @@ body.wps-hover-reveal .cps-rule-blur.wps-revealed {
   font-size: 13px;
   cursor: pointer;
 }
+
+#cps-rule-btn {
+  position: fixed;
+  z-index: 10000;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(17, 27, 33, 0.85);
+  font-size: 13px;
+  line-height: 24px;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+#cps-rule-btn:hover { opacity: 1; }
+#cps-rule-btn[hidden], #cps-rule-tip[hidden] { display: none; }
+
+#cps-rule-menu {
+  position: fixed;
+  z-index: 10001;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 10px;
+  background: #233138;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+#cps-rule-menu button {
+  border: 0;
+  background: transparent;
+  color: #e9edef;
+  text-align: start;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#cps-rule-menu button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); }
+#cps-rule-menu button:disabled { opacity: 0.45; cursor: default; }
+#cps-rule-menu button[hidden] { display: none; }
+
+#cps-rule-menu .cps-rule-note {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 2px 10px 6px;
+}
+
+#cps-rule-tip {
+  position: fixed;
+  z-index: 10001;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  max-width: 360px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #233138;
+  color: #e9edef;
+  font-size: 13px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}

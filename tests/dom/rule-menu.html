@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="wa-fixture.js"></script>
+<script src="../../i18n.js"></script>
+<script src="../../pro.js"></script>
+<script src="../../rules.js"></script>
+<script src="../../sites/whatsapp.js"></script>
+<script>
+mountWhatsApp(["Trabajo", "Pedro"]);
+let pro = false;
+const core = { getSettings: () => ({ lang: "en" }), isPro: () => pro, pinConfigured: () => true, bindHoverContainer() {} };
+const rules = cpsCreateRules(core, cpsCreateSite(core));
+const hover = (el) => el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+const btn = () => document.getElementById("cps-rule-btn");
+const visible = (el) => !!el && !el.hidden;
+(async () => {
+  rules.start();
+  await settle(100);
+
+  hover(document.querySelector("#pane-side > button span"));
+  check("sin botón en Archivados", !visible(btn()));
+
+  hover(rowOf("Pedro").querySelector("span[title]"));
+  check("botón al pasar por un chat", visible(btn()));
+  btn().click();
+  const menu = document.getElementById("cps-rule-menu");
+  check("menú abierto", visible(menu));
+  check("hide deshabilitado sin Pro", menu.querySelector('[data-rule="hide"]').disabled === true);
+  check("quitar oculto sin regla", menu.querySelector('[data-rule="remove"]').hidden === true);
+
+  menu.querySelector('[data-rule="blur"]').click();
+  await settle(100);
+  check("menú añade blur", __cpsStore.cps_chat_rules?.["whatsapp:Pedro"]?.mode === "blur");
+  check("menú se cierra", !visible(document.getElementById("cps-rule-menu")));
+  check("fila difuminada", rowOf("Pedro").classList.contains("cps-rule-blur"));
+
+  pro = true;
+  hover(rowOf("Trabajo").querySelector("span[title]"));
+  btn().click();
+  document.querySelector('#cps-rule-menu [data-rule="hide"]').click();
+  await settle(100);
+  check("menú añade hide con Pro", __cpsStore.cps_chat_rules["whatsapp:Trabajo"].mode === "hide");
+  check("consejo de silenciar", visible(document.getElementById("cps-rule-tip")));
+
+  hover(rowOf("Pedro").querySelector("span[title]"));
+  btn().click();
+  const remove = document.querySelector('#cps-rule-menu [data-rule="remove"]');
+  check("quitar visible con regla", !remove.hidden);
+  remove.click();
+  await settle(100);
+  check("quitar regla", !__cpsStore.cps_chat_rules["whatsapp:Pedro"]);
+  done();
+})();
+</script>
+</body>
