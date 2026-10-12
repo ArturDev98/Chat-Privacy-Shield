@@ -57,6 +57,8 @@ function cpsCreateSite(core) {
     // igual que los filtros de WhatsApp.
     navCountSelector: ".sidebar-tools-button-notifications, .back-unread-badge",
 
+    chatListVisible: () => document.querySelector("#column-left")?.offsetParent != null,
+
     // Sin reglas por chat en 2.1.0; WebK tendría data-peer-id como clave estable.
     ruleRowSelector: null,
     ruleRowKey: () => null,

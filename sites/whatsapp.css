@@ -270,3 +270,13 @@ body.wps-rule-main-blur [data-testid="conversation-panel-messages"] [data-testid
   filter: blur(0px) !important;
   opacity: 1 !important;
 }
+
+/* ---- Ocultar la vista previa del último mensaje (el contador queda visible) ---- */
+body.wps-active.wps-hide-preview [data-testid="cell-frame-secondary"] span:not([data-testid="icon-unread-count"]):not([data-icon]):not(:has([data-testid="icon-unread-count"])) {
+  filter: blur(5px);
+  transition: filter 0.25s ease;
+}
+
+body.wps-active.wps-hover-reveal .wps-revealed [data-testid="cell-frame-secondary"] span {
+  filter: none !important;
+}

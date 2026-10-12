@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../content.css">
+<link rel="stylesheet" href="../../sites/whatsapp.css">
+<body>
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="wa-fixture.js"></script>
+<script src="../../i18n.js"></script>
+<script src="../../pro.js"></script>
+<script>
+  mountWhatsApp(["Trabajo"]);
+  const sec = rowOf("Trabajo").querySelector('[data-testid="cell-frame-secondary"]');
+  sec.insertAdjacentHTML("beforeend", '<span data-testid="icon-unread-count" style="display:inline-block;width:20px;height:20px">3</span>');
+  __cpsStore.wps_settings = { lang: "en", privacyActive: true, showBadges: true, hidePreview: true, panelVisible: true };
+</script>
+<script src="../../profiles.js"></script>
+<script src="../../rules.js"></script>
+<script src="../../sites/whatsapp.js"></script>
+<script src="../../content.js"></script>
+<script>
+const visibleClone = () => [...document.querySelectorAll(".wps-badge-clone")].some((c) => c.style.display !== "none");
+(async () => {
+  await settle(300);
+  check("clase preview", document.body.classList.contains("wps-hide-preview"));
+  check("preview difuminado", getComputedStyle(sec.querySelector("span")).filter.includes("blur"));
+  check("contador sin difuminar", !getComputedStyle(sec.querySelector('[data-testid="icon-unread-count"]')).filter.includes("blur"));
+  await settle(1500);
+  check("contador fijo", visibleClone());
+  document.getElementById("pane-side").style.display = "none";
+  await settle(1000);
+  check("sin contador fuera de chats", !visibleClone());
+  done();
+})();
+</script>
+</body>

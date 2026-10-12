@@ -562,6 +562,9 @@ function cpsCreateSite(core) {
     // de Estados y Canales también son [role="status"], pero sin número.
     navCountSelector: '[data-testid="navbar-primary-section"] [role="status"]',
 
+    chatListVisible: () => [...document.querySelectorAll('#pane-side, [data-testid="archived-chatlist"]')]
+      .some((el) => el.offsetParent !== null),
+
     ruleRowSelector: '[data-testid="cell-frame-container"]',
     ruleRowKey,
     ruleRowContainer: (cell) => cell.closest(HOVER_ITEM_SELECTOR) || cell,

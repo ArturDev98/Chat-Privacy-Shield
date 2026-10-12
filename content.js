@@ -188,6 +188,7 @@
     body.classList.toggle("wps-blur-main", settings.blurMain);
     body.classList.toggle("wps-hide-typed", settings.hideTypedText);
     body.classList.toggle("wps-hide-subtitle", settings.hideChatSubtitle);
+    body.classList.toggle("wps-hide-preview", settings.hidePreview);
     body.classList.toggle("wps-hide-header-avatar", settings.hideHeaderAvatar);
     body.classList.toggle("wps-hide-tab-count", settings.hideTabCount);
     // Si se desactiva hover reveal, limpiar items revelados que queden
@@ -349,6 +350,13 @@
         </svg>
       </button>
 
+      <!-- Ocultar la vista previa del último mensaje -->
+      <button class="wps-btn" id="wps-hide-preview" data-tip="${cpsT('hidePreview', settings.lang)}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7h16M4 12h10"/><line x1="3" y1="3" x2="21" y2="21"/>
+        </svg>
+      </button>
+
       <!-- Auto-difuminar al perder el foco de la pestaña/ventana -->
       <button class="wps-btn" id="wps-blur-tab-hidden" data-tip="${cpsT('panelTooltipBlurTabHidden', settings.lang)}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -477,6 +485,12 @@
       saveSettings();
     });
 
+    document.getElementById("wps-hide-preview").addEventListener("click", () => {
+      settings.hidePreview = !settings.hidePreview;
+      applyState();
+      saveSettings();
+    });
+
     document.getElementById("wps-blur-tab-hidden").addEventListener("click", () => {
       settings.blurOnTabHidden = !settings.blurOnTabHidden;
       applyState();
@@ -539,6 +553,7 @@
     const autoBlurBtn = document.getElementById("wps-auto-blur");
     const hideSubtitleBtn = document.getElementById("wps-hide-subtitle");
     const blurTabHiddenBtn = document.getElementById("wps-blur-tab-hidden");
+    const hidePreviewBtn = document.getElementById("wps-hide-preview");
     const hideHeaderAvatarBtn = document.getElementById("wps-hide-header-avatar");
     const hideTabCountBtn = document.getElementById("wps-hide-tab-count");
     const lockNowBtn = document.getElementById("wps-lock-now");
@@ -559,6 +574,8 @@
     autoBlurBtn?.classList.toggle("active", settings.autoBlurEnabled);
     hideSubtitleBtn?.classList.toggle("active", settings.hideChatSubtitle);
     blurTabHiddenBtn?.classList.toggle("active", settings.blurOnTabHidden);
+    hidePreviewBtn?.classList.toggle("active", settings.hidePreview);
+    hidePreviewBtn?.setAttribute("data-tip", cpsT("hidePreview", settings.lang));
     hideHeaderAvatarBtn?.classList.toggle("active", settings.hideHeaderAvatar);
     hideTabCountBtn?.classList.toggle("active", settings.hideTabCount);
 
@@ -659,26 +676,6 @@
     return clone;
   }
 
-  // El contador solo se muestra mientras el mouse está en movimiento
-  // activo, y se oculta a los ~900ms de quedar quieto. Evita depender de
-  // distinguir con precisión cada estructura interna de WhatsApp (chats,
-  // estados ocultos, etc.) para decidir dónde "debe" o "no debe" aparecer:
-  // si no estás moviendo el mouse ahí, simplemente no se ve.
-  let mouseIdle = true;
-  let mouseIdleTimer = null;
-
-  document.addEventListener("mousemove", () => {
-    if (mouseIdle) {
-      mouseIdle = false;
-      scheduleBadgeRefresh();
-    }
-    clearTimeout(mouseIdleTimer);
-    mouseIdleTimer = setTimeout(() => {
-      mouseIdle = true;
-      scheduleBadgeRefresh();
-    }, 900);
-  }, { passive: true });
-
   function clearBadgeOverlays() {
     document.querySelectorAll(".wps-badge-clone").forEach((el) => el.remove());
   }
@@ -690,9 +687,11 @@
       return;
     }
 
-    if (mouseIdle) {
+    // Los clones quedan fijos, pero solo con la lista de chats a la vista: en
+    // Estados o Llamadas no hay contadores que copiar.
+    if (!site.chatListVisible()) {
       clearBadgeOverlays();
-      stopBadgeLoop();
+      startBadgeLoop();
       return;
     }
 

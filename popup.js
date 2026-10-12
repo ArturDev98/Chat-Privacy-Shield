@@ -16,6 +16,7 @@ const defaults = {
   hideTypedText: false,
   autoBlurEnabled: false,
   hideChatSubtitle: false,
+  hidePreview: false,
   blurOnTabHidden: false,
   hideHeaderAvatar: false,
   hideTabCount: false,
@@ -97,6 +98,7 @@ function updateUI() {
   document.getElementById("toggle-hide-typed").checked = settings.hideTypedText;
   document.getElementById("toggle-auto-blur").checked = settings.autoBlurEnabled;
   document.getElementById("toggle-hide-subtitle").checked = settings.hideChatSubtitle;
+  document.getElementById("toggle-hide-preview").checked = settings.hidePreview;
   const schedule = settings.profileSchedule;
   document.getElementById("toggle-schedule").checked = schedule.enabled;
   document.getElementById("schedule-start").value = schedule.start;
@@ -192,6 +194,11 @@ document.getElementById("toggle-auto-blur").addEventListener("change", (e) => {
 
 document.getElementById("toggle-hide-subtitle").addEventListener("change", (e) => {
   settings.hideChatSubtitle = e.target.checked;
+  saveAndSync();
+});
+
+document.getElementById("toggle-hide-preview").addEventListener("change", (e) => {
+  settings.hidePreview = e.target.checked;
   saveAndSync();
 });
 
