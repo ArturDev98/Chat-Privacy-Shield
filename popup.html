@@ -320,6 +320,38 @@
       background: #00a884;
       color: #fff;
     }
+    .rules-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.75);
+      padding: 4px 0;
+    }
+    .rules-row[hidden] { display: none; }
+    .rules-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rules-meta {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+    .rules-remove {
+      border: 0;
+      background: none;
+      color: rgba(255,255,255,0.45);
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .rules-empty {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+    }
+    .rules-empty[hidden] { display: none; }
     .schedule-section {
       padding: 10px 18px;
       border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -875,6 +907,16 @@
     <div class="shortcut-row">
       <span class="shortcut-label" data-i18n="pinLockSection">PIN Lock</span>
       <div class="kbd-group"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>L</kbd></div>
+    </div>
+  </div>
+
+  <div class="backup-section" id="rules-section">
+    <div class="backup-title" data-i18n="rulesSection">Per-chat rules</div>
+    <div id="rules-list"></div>
+    <div id="rules-empty" class="rules-empty" data-i18n="rulesEmpty">Hover a chat and use 🛡 to add a rule</div>
+    <div id="rules-hidden-row" class="rules-row" hidden>
+      <span id="rules-hidden-count"></span>
+      <button type="button" id="rules-hidden-view" class="mini-btn" data-i18n="rulesHiddenView">View (PIN)</button>
     </div>
   </div>
 

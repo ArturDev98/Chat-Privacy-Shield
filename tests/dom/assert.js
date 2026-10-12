@@ -11,6 +11,10 @@
     document.getElementById("results").textContent = "\n" + lines.join("\n") + "\n";
   };
   window.settle = (ms = 50) => new Promise((r) => setTimeout(r, ms));
+  // FileReader y crypto corren fuera del tiempo virtual: se espera sondeando.
+  window.waitFor = async (cond, tries = 100) => {
+    for (let i = 0; i < tries && !cond(); i++) await window.settle(50);
+  };
   window.addEventListener("error", (e) => { failed++; lines.push("FAIL uncaught: " + e.message); });
   // Una prueba async que lanza no llega a done(): se cierra aquí con el error.
   window.addEventListener("unhandledrejection", (e) => {

@@ -1,0 +1,59 @@
+<!doctype html>
+<meta charset="utf-8">
+<body>
+<pre id="results"></pre>
+<script src="chrome-stub.js"></script>
+<script src="assert.js"></script>
+<script src="popup-loader.js"></script>
+<script>
+(async () => {
+  const DAY = 86400000;
+  __cpsStore.wps_settings = { lang: "en" };
+  __cpsStore.cps_chat_rules = {
+    "whatsapp:Trabajo": { mode: "blur", lastSeen: Date.now() - 3 * DAY },
+    "whatsapp:Familia": { mode: "hide", lastSeen: Date.now() },
+  };
+  let exported = null;
+  URL.createObjectURL = (blob) => { blob.text().then((t) => { exported = t; }); return "blob:x"; };
+  await loadPopup();
+  // Una iteración: con 150 000 el tiempo virtual de Edge avanza antes de que termine.
+  const salt = "00112233445566778899aabbccddeeff";
+  const hash = await cpsPinDerive("1234", salt, 1);
+  chrome.storage.local.set({ cps_pin: { salt, hash, iterations: 1, length: 4, createdAt: 0 } });
+  await settle(200);
+  const section = () => document.getElementById("rules-section").textContent;
+  check("lista blur con visto hace", section().includes("Trabajo") && section().includes("3"));
+  check("no lista nombres escondidos", !section().includes("Familia"));
+  check("cuenta escondidos", document.getElementById("rules-hidden-count").textContent.includes("1"));
+
+  document.getElementById("export-settings-btn").click();
+  await settle(200);
+  check("export sin hide", !!exported && exported.includes("Trabajo") && !exported.includes("Familia"));
+
+  document.getElementById("rules-hidden-view").click();
+  await settle(50);
+  document.getElementById("pin-dialog-input").value = "1234";
+  document.getElementById("pin-dialog-ok").click();
+  await waitFor(() => section().includes("Familia"));
+  check("ver escondidos con PIN", section().includes("Familia"));
+
+  const file = new File([JSON.stringify({ app: "chat-privacy-shield", settings: { lang: "en" },
+    chatRules: { "whatsapp:Nuevo": { mode: "blur", lastSeen: 1 }, "whatsapp:X": { mode: "hide", lastSeen: 1 } } })],
+    "cps.json", { type: "application/json" });
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  const input = document.getElementById("import-file-input");
+  input.files = dt.files;
+  input.dispatchEvent(new Event("change"));
+  await waitFor(() => document.getElementById("backup-status").textContent.includes("mport"));
+  const after = __cpsStore.cps_chat_rules;
+  check("import conserva hide", after["whatsapp:Familia"]?.mode === "hide" && after["whatsapp:Nuevo"]?.mode === "blur"
+    && !after["whatsapp:X"] && !after["whatsapp:Trabajo"]);
+
+  document.querySelector('#rules-list [data-key="whatsapp:Nuevo"] button').click();
+  await settle(100);
+  check("quitar regla desde el popup", !__cpsStore.cps_chat_rules["whatsapp:Nuevo"]);
+  done();
+})();
+</script>
+</body>

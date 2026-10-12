@@ -110,6 +110,7 @@ function updateUI() {
   document.getElementById("toggle-lock-tab-hidden").checked = settings.lockOnTabHidden;
   applyTranslations();
   updateProUI();
+  renderRules();
 }
 
 // ---- Cargar estado ----
@@ -231,6 +232,64 @@ document.getElementById("lang-toggle").addEventListener("click", () => {
   saveAndSync();
 });
 
+// ---- Reglas por chat ----
+// Los nombres escondidos solo se listan tras el PIN, y solo mientras el popup siga abierto.
+let chatRules = {};
+let hiddenUnlocked = false;
+
+function ruleRow(key, rule) {
+  const row = document.createElement("div");
+  row.className = "rules-row";
+  row.dataset.key = key;
+  const name = document.createElement("span");
+  name.className = "rules-name";
+  name.textContent = key.slice(key.indexOf(":") + 1);
+  const meta = document.createElement("span");
+  meta.className = "rules-meta";
+  const days = Math.floor((Date.now() - (rule.lastSeen || 0)) / 86400000);
+  meta.textContent = (rule.mode === "hide" ? "🙈 " : "") + cpsT("ruleSeenDaysAgo", settings.lang).replace("{n}", days);
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "rules-remove";
+  remove.textContent = "✕";
+  remove.addEventListener("click", () => {
+    chatRules = cpsRulesSet(chatRules, key, null, Date.now());
+    chrome.storage.local.set({ [CPS_RULES_KEY]: chatRules });
+    renderRules();
+  });
+  row.append(name, meta, remove);
+  return row;
+}
+
+function renderRules() {
+  const list = document.getElementById("rules-list");
+  list.innerHTML = "";
+  const entries = Object.entries(chatRules).filter(([, rule]) => rule.mode === "blur" || (hiddenUnlocked && rule.mode === "hide"));
+  entries.forEach(([key, rule]) => list.appendChild(ruleRow(key, rule)));
+  const hiddenCount = cpsRulesHiddenCount(chatRules);
+  const hiddenRow = document.getElementById("rules-hidden-row");
+  hiddenRow.hidden = hiddenUnlocked || hiddenCount === 0;
+  document.getElementById("rules-hidden-count").textContent = cpsT("rulesHiddenCount", settings.lang).replace("{n}", hiddenCount);
+  document.getElementById("rules-empty").hidden = entries.length > 0 || hiddenCount > 0;
+}
+
+chrome.storage.local.get(CPS_RULES_KEY, (data) => {
+  chatRules = data[CPS_RULES_KEY] || {};
+  renderRules();
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local" || !changes[CPS_RULES_KEY]) return;
+  chatRules = changes[CPS_RULES_KEY].newValue || {};
+  renderRules();
+});
+
+document.getElementById("rules-hidden-view").addEventListener("click", async () => {
+  if (!(await askCurrentPin())) return;
+  hiddenUnlocked = true;
+  renderRules();
+});
+
 // ---- Exportar / Importar configuración ----
 function showBackupStatus(text, isError) {
   const el = document.getElementById("backup-status");
@@ -248,6 +307,7 @@ document.getElementById("export-settings-btn").addEventListener("click", () => {
     app: "chat-privacy-shield",
     exportedAt: new Date().toISOString(),
     settings,
+    chatRules: cpsRulesForExport(chatRules),
   };
   const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -308,6 +368,12 @@ document.getElementById("import-file-input").addEventListener("change", (e) => {
       // está armado, se conserva pase lo que pase en el archivo.
       const lockWasOn = settings.pinLockEnabled;
       settings = readSettings(imported);
+      // Un archivo de antes de 2.1 no trae reglas: no se tocan las que hay.
+      if (parsed.chatRules) {
+        chatRules = cpsRulesMergeImport(chatRules, parsed.chatRules);
+        chrome.storage.local.set({ [CPS_RULES_KEY]: chatRules });
+        renderRules();
+      }
       if (lockWasOn) settings.pinLockEnabled = true;
 
       updateUI();
