@@ -199,9 +199,13 @@ function cpsCreateRules(core, site) {
       return;
     }
     hoveredName = name;
+    // Sobre la esquina de la foto: el borde derecho es de la hora y la flecha ⌄ de WhatsApp.
     const rect = cell.getBoundingClientRect();
-    btn.style.top = `${rect.top + rect.height / 2 - 12}px`;
-    btn.style.left = `${rect.right - 30}px`;
+    const rtl = getComputedStyle(cell).direction === "rtl";
+    btn.style.top = `${rect.bottom - 30}px`;
+    btn.style.left = `${rtl ? rect.right - 70 : rect.left + 46}px`;
+    btn.setAttribute("aria-label", cpsT("rulesSection", lang()));
+    btn.title = btn.getAttribute("aria-label");
     btn.hidden = false;
   }
 

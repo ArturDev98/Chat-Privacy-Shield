@@ -1,5 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
+<link rel="stylesheet" href="../../content.css">
 <body>
 <pre id="results"></pre>
 <script src="chrome-stub.js"></script>
@@ -26,6 +27,11 @@ const visible = (el) => !!el && !el.hidden;
 
   hover(rowOf("Pedro").querySelector("span[title]"));
   check("botón al pasar por un chat", visible(btn()));
+  // La flecha ⌄ de WhatsApp vive en el borde derecho de la fila: el botón no puede taparla.
+  const rowRect = rowOf("Pedro").getBoundingClientRect();
+  const btnRect = btn().getBoundingClientRect();
+  check("botón lejos de la flecha de WhatsApp", btnRect.right <= rowRect.left + 120);
+  check("botón con nombre", btn().getAttribute("aria-label") === cpsT("rulesSection", "en"));
   btn().click();
   const menu = document.getElementById("cps-rule-menu");
   check("menú abierto", visible(menu));
